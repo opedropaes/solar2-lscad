@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon src/controller/index.js"
+    "start": "node src/controller/index.js"
   },
   "author": "",
   "license": "ISC",
