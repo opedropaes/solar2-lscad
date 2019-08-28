@@ -12,6 +12,7 @@
   "dependencies": {
     "bootstrap": "^4.3.1",
     "create-react-app": "^3.0.1",
+    "heroku": "^7.29.0",
     "restify": "^8.4.0",
     "restify-cors-middleware": "^1.1.1"
   },
