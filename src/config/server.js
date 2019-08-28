@@ -12,12 +12,13 @@ const server = restify.createServer({
         'text/html',
         'image/png',
         'image/jpg'
-    ]
+	]
 })
 
 const cors = corsMiddleware({
     origins: ['*'],
-    allowHeaders: ['*']
+    allowHeaders: ['*'],
+	exposeHeaders: ['*']
 })
 
 server.pre(cors.preflight)
