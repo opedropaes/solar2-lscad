@@ -1,37 +1,26 @@
-const port = process.env.PORT || 3000
-
 const restify = require('restify')
 const corsMiddleware = require('restify-cors-middleware')
+const compresison = require('compression')
+const helmet = require('helmet')
+const server = restify.createServer()
 
-require('dotenv').config()
-
-const server = restify.createServer({
-    ignoreTrailingSlash: true,
-    accept: [
-        'application/json',
-        'text/html',
-        'image/png',
-        'image/jpg'
-	]
-})
+server.use(helmet())
 
 const cors = corsMiddleware({
-    origins: ['*'],
-    allowHeaders: ['*'],
+	origins: ['*'],
+	allowHeaders: ['*'],
 	exposeHeaders: ['*']
 })
+
+server.use(compresison())
 
 server.pre(cors.preflight)
 server.use(cors.actual)
 
-server.use(restify.plugins.bodyParser({
-    mapParams: true,
-    mapFiles: false,
+server.use(restify.plugins.acceptParser(server.acceptable));
+server.use(restify.plugins.bodyParser())
+server.use(restify.plugins.queryParser({
+	mapParams: true
 }))
 
-server.use(restify.plugins.queryParser())
-
-module.exports = {
-    server,
-    port
-}
+module.exports.server = server

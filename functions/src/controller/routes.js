@@ -9,29 +9,30 @@ const campograndeEnvironmental = require('../model/readCGEnvironmental')
 // Home and utils
 
 routes.get('/', (req, res) => {
-	res.send('Home')
+	console.log('header', res.getHeader('access-control-allow-origin'))
+	res.json('Home')
 })
 
 routes.get('/login', (req, res) => {
-	res.send('login')
+	res.json('login')
 })
 
 routes.get('/cadastro', (req, res) => {
-	res.send('cadastro')
+	res.json('cadastro')
 })
 
 routes.get('/sobre', (req, res) => {
-	res.send('sobre')
+	res.json('sobre')
 })
 
 routes.get('/contato', (req, res) => {
-	res.send('contato')
+	res.json('contato')
 })
 
 // Campo Grande
 
 routes.get('/campo-grande/painel', (req, res) => {
-	res.send('painel')
+	res.json('painel')
 })
 
 routes.get('/campo-grande/producao', campograndeProduction.readCGProduction)
@@ -39,7 +40,7 @@ routes.get('/campo-grande/producao', campograndeProduction.readCGProduction)
 routes.get('/campo-grande/ambientais', campograndeEnvironmental.readCGEnvironmental)
 
 routes.get('/campo-grande/perdas', (req, res) => {
-	res.send('perdas cg')
+	res.json('perdas cg')
 })
 
 routes.get('/campo-grande', (req, res) => {
@@ -49,7 +50,7 @@ routes.get('/campo-grande', (req, res) => {
 // Irece
 
 routes.get('/irece/painel', (req, res) => {
-	res.send('painel irece')
+	res.json('painel irece')
 })
 
 routes.get('/irece/producao', ireceProduction.readIreceProduction)
@@ -57,7 +58,7 @@ routes.get('/irece/producao', ireceProduction.readIreceProduction)
 routes.get('/irece/ambientais', ireceEnvironmental.readIreceEnvironmental)
 
 routes.get('/irece/perdas', (req, res) => {
-	res.send('perdas irece')
+	res.json('perdas irece')
 })
 
 routes.get('/irece/perdas/1', ireceLosses.readIreceLossesTable1)
@@ -73,27 +74,4 @@ routes.get('/irece/perdas/5', ireceLosses.readIreceLossesTable5)
 routes.get('/irece', (req, res) => {
 	res.redirect('/irece/painel')
 })
-
-// Candeias
-
-routes.get('/candeias/painel', (req, res) => {
-	res.send('painel candeias')
-})
-
-routes.get('/candeias/producao', (req, res) => {
-	res.send('producao candeias')
-})
-
-routes.get('/candeias/ambientais', (req, res) => {
-	res.send('ambientais candeias')
-})
-
-routes.get('/candeias/perdas', (req, res) => {
-	res.send('perdas candeias')
-})
-
-routes.get('/candeias', (req, res) => {
-	res.redirect('/candeias/painel')
-})
-
 module.exports = routes
