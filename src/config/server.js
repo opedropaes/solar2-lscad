@@ -1,6 +1,5 @@
 const restify = require('restify')
 const corsMiddleware = require('restify-cors-middleware')
-const compresison = require('compression')
 const helmet = require('helmet')
 const server = restify.createServer()
 
@@ -11,8 +10,6 @@ const cors = corsMiddleware({
 	allowHeaders: ['*'],
 	exposeHeaders: ['*']
 })
-
-server.use(compresison())
 
 server.pre(cors.preflight)
 server.use(cors.actual)
