@@ -63,7 +63,7 @@ const requireAWSData = async (params) => {
 									idc: parseFloat(item.idc.toFixed(3)),
 									vac: parseFloat(item.vac.toFixed(3)),
 									vdc: parseFloat(item.vdc.toFixed(3)),
-									irr: parseInt(item.irr)
+									irr: parseFloat(item.irr/1000)
 								})
 							}
 							else {
@@ -73,7 +73,7 @@ const requireAWSData = async (params) => {
 									idc: parseFloat(item.idc.toFixed(3)),
 									vac: parseFloat(item.vac.toFixed(3)),
 									vdc: parseFloat(item.vdc.toFixed(3)),
-									irr: parseInt(item.irr)
+									irr: parseFloat(item.irr/1000)
 								})
 							}
 						}
@@ -91,7 +91,8 @@ const requireAWSData = async (params) => {
 				response.continuousCurrent,
 				response.alternateTension,
 				response.continuousTension,
-				response.irradiation
+				response.irradiation,
+				response.totalProduction
 			])
 
 		})
@@ -112,9 +113,13 @@ const dataAverage = (data, dates) => {
 		let alternateTension = []
 		let continuousTension = []
 		let irradiation = []
+		let totalProduction = []
 
 		for (let i = 0; i < dates.length; i++) {
 
+			totalProduction.push(parseFloat(data[i].pac))
+			irradiation.push(data[i].irr)
+			
 			let minute = dates[i][3] + dates[i][4]
 
 			minutesSum += parseFloat(data[i].pac)
@@ -128,7 +133,6 @@ const dataAverage = (data, dates) => {
 				continuousCurrent.push(data[i].idc)
 				alternateTension.push(data[i].vac)
 				continuousTension.push(data[i].vdc)
-				irradiation.push(data[i].irr)
 				interval.push(dates[i])
 
 				minutesSum = 0
@@ -146,7 +150,8 @@ const dataAverage = (data, dates) => {
 			continuousCurrent,
 			alternateTension,
 			continuousTension,
-			irradiation
+			irradiation,
+			totalProduction
 		}
 
 	} catch (error) {
@@ -193,15 +198,15 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 					(accumulator, currentValue) => accumulator + currentValue
 				)
 
-				const totalProduction = response[0].reduce(
+				const totalProduction = response[8].reduce(
 					(accumulator, currentValue) => accumulator + parseFloat(currentValue)
 				)
 
-				let productionAverage = parseFloat((totalProduction/response[0].length).toFixed(3))
+				let productionAverage = parseFloat((totalProduction/response[8].length).toFixed(3))
 				let irradiationAverage = parseFloat((totalIrradiation/response[7].length).toFixed(3))
 				let painelEfficiencyDegree = 0.175
 				let nominalProduction = parseFloat((irradiationAverage * painelEfficiencyDegree).toFixed(3))
-				let performanceRatio = parseFloat((100 * productionAverage / nominalProduction).toFixed(2))
+				let performanceRatio = parseFloat((productionAverage / nominalProduction).toFixed(2))
 
 				let items = {
 					period: 'day',
