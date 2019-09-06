@@ -1,6 +1,7 @@
 const tableDefiner = require('./define-table')
 const dateFormater = require('./format-date')
 const AWSConfig = require('../config/config')
+const irradiationReader = require('./readCGProduction').CampoGrandeProductionServices
 
 const docClient = AWSConfig.docClient;
 
@@ -27,7 +28,7 @@ const requireAWSData = async (params) => {
 		let windSpeeds = []
 		
 
-		docClient.scan(params, (err, data) => {
+		docClient.query(params, (err, data) => {
 			if (err) {
 				reject("Unable to scan table. Error JSON: " + JSON.stringify(err, null, 2))
 			}
@@ -139,7 +140,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 			date[3]
 	}
 
-	return new Promise((resolve, reject) => {
+	let promiseEnv = new Promise((resolve, reject) => {
 
 		let params = tableDefiner.defineTable(
 			'campo-grande',
@@ -182,6 +183,19 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 			})
 
 	})
+
+	let promiseIrr = new Promise((resolve, reject) => {
+		irradiationReader.readForOneDay(dateToRequest.year + dateToRequest.day + dateToRequest.month)
+			.then(response => {
+				console.log(response)
+				resolve({ irradiation: response.irradiation })
+			})
+			.catch(err => {
+				console.log(err)
+			})
+	})
+
+	return Promise.all([promiseIrr, promiseEnv])
 }
 
 module.exports = { CampoGrandeEnvironmentalServices }
