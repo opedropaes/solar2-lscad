@@ -1,8 +1,8 @@
 const server = require('../config/server').server
 
-server.get('/campo-grande/painel', (req, res, next) => {
+server.post('/campo-grande/painel', (req, res, next) => {
     res.send('Campo Grande Painel')
-    next()
+    return next()
 })
 
 module.exports = { server }
