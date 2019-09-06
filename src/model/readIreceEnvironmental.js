@@ -24,7 +24,7 @@ const requireAWSData = async (params) => {
 				reject('Unable to scan table. Error JSON: ' + JSON.stringify(err, null, 2))
 			}
 			else {
-				var qtd = 1
+				let qtd = 0
 				data.Items.forEach(function (item) {
 					if (typeof data.Items != 'undefined') {
 
@@ -40,7 +40,7 @@ const requireAWSData = async (params) => {
 							let solarRadiation = parseFloat(item.avg_radsol_I).toFixed(3)
 							let averageRadiation = parseFloat(item.irradiancia_avg).toFixed(3)
 
-							items[qtd - 1] = {
+							items.push({
 								humidity: humidity,
 								rainfall: rainfall,
 								windSpeed: windSpeed,
@@ -49,9 +49,9 @@ const requireAWSData = async (params) => {
 								date: formatedDate.hourMin,
 								solarRadiation: solarRadiation,
 								averageRadiation: averageRadiation,
-							}
+							})
 
-							interval[qtd - 1] = formatedDate.hourMin
+							interval.push(formatedDate.hourMin)
 							qtd++
 						}
 

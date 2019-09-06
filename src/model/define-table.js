@@ -62,19 +62,15 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 
 		else if (type == 'environmental') {
 			params = {
-				TableName: "ambientais_ufms_weatherhawk",
-				ProjectionExpression: "#ts, hum, rainfall, #tmp, uv, wind_dir, wind_speed",
-				FilterExpression: "#ts between :start_ts and :end_ts",
-				ExpressionAttributeNames: {
-					"#ts": "timestamp",
-					"#tmp": "temp"
-				},
+				TableName: "ambientais_ifba",
+				KeyConditionExpression: "dia_mes_ano = :inicio",
+				ProjectionExpression: "dia_mes_ano, hora_minuto, massaPM1, massaPM10, massaPM2, massaPM4, numPM1, numPM10, numPM2, numPM4, tamanho_medio, temp, tipo, vento_dir, ventor_vel",
 				ExpressionAttributeValues: {
-					":start_ts": parseInt(year + month + day + '050000'),
-					":end_ts": parseInt(year + month + day + '235959'),
+					":inicio": parseInt(year + month + day)
 				}
 			}
 		}
+
 	}
 
 	// console.log(params)
