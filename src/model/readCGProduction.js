@@ -92,7 +92,8 @@ const requireAWSData = async (params) => {
 				response.alternateTension,
 				response.continuousTension,
 				response.irradiation,
-				response.totalProduction
+				response.totalProduction,
+				response.irradiationQuarters
 			])
 
 		})
@@ -114,6 +115,7 @@ const dataAverage = (data, dates) => {
 		let continuousTension = []
 		let irradiation = []
 		let totalProduction = []
+		let irradiationQuarters = []
 
 		for (let i = 0; i < dates.length; i++) {
 
@@ -133,6 +135,7 @@ const dataAverage = (data, dates) => {
 				continuousCurrent.push(data[i].idc)
 				alternateTension.push(data[i].vac)
 				continuousTension.push(data[i].vdc)
+				irradiationQuarters.push(data[i].irr)
 				interval.push(dates[i])
 
 				minutesSum = 0
@@ -151,7 +154,8 @@ const dataAverage = (data, dates) => {
 			alternateTension,
 			continuousTension,
 			irradiation,
-			totalProduction
+			totalProduction,
+			irradiationQuarters
 		}
 
 	} catch (error) {
@@ -216,6 +220,7 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 					averages: response[0],
 					interval: response[1],
 					irradiation: response[7],
+					irradiationQuarters: response[9],
 					capacityFactor: response[2],
 					alternateCurrent: response[3],
 					alternateTension: response[5],
