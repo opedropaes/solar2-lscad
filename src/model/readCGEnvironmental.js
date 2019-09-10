@@ -11,7 +11,6 @@ const requireAWSData = async (params) => {
 		let items = []
 		let types = []
 		let interval = []
-		let irradiationInterval = []
 		let PM1Numbers = []
 		let PM2Numbers = []
 		let PM4Numbers = []
@@ -310,13 +309,17 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 			.then(response => {
 				resolve({ 
 					irradiation: response.irradiationQuarters,
-					interval: response.interval
+					interval: response.interval,
+					completeIrradiation: response.completeIrradiation,
+					completeInterval: response.completeInterval
 				})
 			})
 			.catch(err => {
 				resolve({
 					irradiation: [0],
-					interval: [0]
+					interval: [0],
+					completeIrradiation: [0],
+					completeInterval: [0]
 				})
 			})
 	})

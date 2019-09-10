@@ -17,6 +17,9 @@ const requireAWSData = async (params) => {
 		let items = []
 		let interval = []
 		let sortedItems = []
+		let completeInterval = []
+		let completeIrradiation = []
+		let sortedIrradiation = []
 
 		docClient.query(params, (err, data) => {
 			if (err) {
@@ -27,10 +30,10 @@ const requireAWSData = async (params) => {
 				data.Items.forEach(function (item) {
 					if (typeof data.Items != 'undefined') {
 						if (item.hora_minuto >= 60000 && item.hora_minuto <= 190000) {
-                            
+							
+							let formatedDate = dateFormater.formatDate(item.dia_mes_ano, item.hora_minuto)
+							
 							if (item.P_AC >= 20) {
-
-								let formatedDate = dateFormater.formatDate(item.dia_mes_ano, item.hora_minuto)
 
 								items.push({
 									pac: item.P_AC / 1000,
@@ -44,14 +47,30 @@ const requireAWSData = async (params) => {
 									hourMin: formatedDate.hourMin
 								})
 
+								completeInterval.push(formatedDate.hourMin)
+								completeIrradiation.push({
+									irr: item.IRR || 0,
+									hourMin: formatedDate.hourMin
+								})
+
 								interval.push(formatedDate.hourMin)
 							}
+						} else {
+
+							let formatedDate = dateFormater.formatDate(item.dia_mes_ano, item.hora_minuto)
+							completeInterval.push(formatedDate.hourMin)
+							completeIrradiation.push({
+								irr: item.IRR || 0,
+								hourMin: formatedDate.hourMin
+							})
+
 						}
 					}
 
 				})
 
 				interval.sort()
+				completeInterval.sort()
 
 				for (let hour of interval) {
 					for (let item of items) {
@@ -80,6 +99,14 @@ const requireAWSData = async (params) => {
 					}
 				}
 
+				for (let hour of completeInterval) {
+					for (let item of completeIrradiation) {
+						if (hour == item.hourMin) {
+							sortedIrradiation.push(item.irr)
+						}
+					}
+				}
+
 			}
 
 			let response = dataAverage(sortedItems, interval)
@@ -93,7 +120,9 @@ const requireAWSData = async (params) => {
 				response.continuousTension,
 				response.irradiation,
 				response.totalProduction,
-				response.irradiationQuarters
+				response.irradiationQuarters,
+				completeInterval,
+				sortedIrradiation,
 			])
 
 		})
@@ -226,6 +255,8 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 					alternateTension: response[5],
 					continuousCurrent: response[4],
 					continuousTension: response[6],
+					completeInterval: response[10],
+					completeIrradiation: response[11],
 					totalProduction,
 					totalIrradiation,
 					performanceRatio,
