@@ -64,13 +64,13 @@ const requireAWSData = async (params) => {
 				for (let hour of interval) {
 					for (let item of items) {
 						if (hour == item.date) {
-							humidity.push(parseFloat(item.humidity).toFixed(3))
-							rainfall.push(parseFloat(item.rainfall).toFixed(3))
-							windSpeed.push(parseFloat(item.windSpeed).toFixed(3))
-							temperature.push(parseFloat(item.temperature).toFixed(3))
-							atmPressure.push(parseFloat(item.atmPressure).toFixed(3))
-							solarRadiation.push(parseFloat(item.solarRadiation).toFixed(3))
-							averageRadiation.push(parseFloat(item.averageRadiation).toFixed(3))
+							humidity.push(parseFloat(item.humidity))
+							rainfall.push(parseFloat(item.rainfall))
+							windSpeed.push(parseFloat(item.windSpeed))
+							temperature.push(parseFloat(item.temperature))
+							atmPressure.push(parseFloat(item.atmPressure))
+							solarRadiation.push(parseFloat(item.solarRadiation))
+							averageRadiation.push(parseFloat(item.averageRadiation))
 
 						}
 					}
@@ -146,7 +146,24 @@ IreceEnvironmentalServices.readForOneDay = async (date) => {
 
 		})
 		.catch((err) => {
-			reject(err)
+
+			let items = {
+				humidity: [0],
+				rainfall: [0],
+				windSpeed: [0],
+				temperature: [0],
+				atmPressure: [0],
+				solarRadiation: [0],
+				averageRadiation: [0],
+				interval: [0],
+				day: dateToRequest.day,
+                month: dateToRequest.month,
+				year: dateToRequest.year,
+				monthDay: dateToRequest.day + '/' + dateToRequest.month + '/' + dateToRequest.year,
+			}
+
+			resolve(items)
+			
 		})
 
 	})
