@@ -1,7 +1,7 @@
 /* eslint-disable eqeqeq */
 const tableDefiner = require('./define-table')
 const dateFormater = require('./format-date')
-
+const daysInMonthDefiner = require('../utils/daysInMonthDefiner')
 const AWSConfig = require('../config/config')
 
 const docClient = AWSConfig.docClient
@@ -227,14 +227,8 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 		requireAWSData(params)
 			.then((response) => {
 
-				const totalIrradiation = response[7].reduce(
-					(accumulator, currentValue) => accumulator + currentValue
-				)
-
-				const totalProduction = response[8].reduce(
-					(accumulator, currentValue) => accumulator + parseFloat(currentValue)
-				)
-
+				let totalIrradiation = (response[7].length) ? response[7].reduce((acc, cur) => acc + cur) : 0
+				let totalProduction = (response[8].length) ? response[8].reduce((acc, cur) => acc + parseFloat(cur)) : 0
 				let productionAverage = parseFloat((totalProduction/response[8].length).toFixed(3))
 				let irradiationAverage = parseFloat((totalIrradiation/response[7].length).toFixed(3))
 				let painelEfficiencyDegree = 0.175
@@ -275,6 +269,104 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 			})
 
 	})
+}
+
+CampoGrandeProductionServices.readForOneMonth = async (date) => {
+
+	let items = {}
+	let monthInterval = []
+	let averageProduction = []
+	let averageCapacityFactor = []
+	let totalProductions = []
+	let performances = []
+
+	let dateToRequest = {
+		month:
+			date[4] +
+			date[5],
+		year:
+			date[0] +
+			date[1] +
+			date[2] +
+			date[3]
+	}
+
+	let daysThisMonth = daysInMonthDefiner.howMayDaysThisMonth(dateToRequest.month)
+	let days = []
+
+	for (let i = 1; i <= daysThisMonth; i++) {
+		days.push((i < 10) ? "0" + i : i)
+	}
+
+	return new Promise((resolve, reject) => {
+		days.map(day => {
+			CampoGrandeProductionServices.readForOneDay(dateToRequest.year + dateToRequest.month + day)
+				.then((response) => {
+
+					let effectiveHours = response.interval.length / 4
+
+					let totalAverage = (response.averages.length) ? response.averages.reduce((acc, cur) => acc + cur) : 0
+					let totalCapacityFactor = (response.capacityFactor.length) ? response.capacityFactor.reduce((acc, cur) => acc + cur) : 0
+					let totalProduction = parseFloat((response.totalProduction).toFixed(3)) || 0
+					let performanceRatio = response.performanceRatio || 0
+
+					averageProduction[day - 1] = parseFloat((totalAverage / effectiveHours).toFixed(3)) || 0
+					averageCapacityFactor[day - 1] = parseFloat((totalCapacityFactor / effectiveHours).toFixed(3)) || 0
+					totalProductions[day - 1] = totalProduction
+					performances[day - 1] = performanceRatio
+
+					monthInterval.push(day)
+					monthInterval.sort()
+
+					if (monthInterval.length == days.length) {
+
+						let totalPerformanceRatio = performances.reduce((acc, cur) => acc + cur) || 0
+						let effectivePerformanceDays = performances.filter((effectiveDay) => { return effectiveDay > 0 })
+						let totalPerformanceRatioAverage = totalPerformanceRatio / effectivePerformanceDays.length
+						let totalPerformanceRatioComparison = [
+							parseFloat((totalPerformanceRatioAverage).toFixed(2)),
+							parseFloat((100 - totalPerformanceRatioAverage).toFixed(2))
+						]
+
+						items = {
+							averages: averageProduction,
+							capacityFactor: averageCapacityFactor,
+							productions: totalProductions,
+							performances: performances,
+							performanceRatioComparison: totalPerformanceRatioComparison,
+							interval: monthInterval,
+							monthDay: dateToRequest.month + "/" + dateToRequest.year,
+							month: dateToRequest.month,
+							year: dateToRequest.year,
+							period: 'month'
+						}
+
+						resolve(items)
+					}
+
+				})
+				.catch((err) => {
+
+					let items = {
+						averages: [0],
+						capacityFactor: [0],
+						productions: [0],
+						performances: [0],
+						performanceRatioComparison: [0],
+						interval: [0],
+						monthDay: dateToRequest.month + "/" + dateToRequest.year,
+						month: dateToRequest.month,
+						year: dateToRequest.year,
+						period: 'month'
+					}
+					
+					resolve(items)
+
+				})
+		})
+
+	})
+
 }
 
 module.exports = { CampoGrandeProductionServices }

@@ -3,19 +3,29 @@ const service = require('../model/readCGProduction').CampoGrandeProductionServic
 
 const respond = async (req, res, next) => {
     
-    service.readForOneDay(req.params.date)
+    if (req.params.period == 'day') {
+		service.readForOneDay(req.params.date)
         .then((responseData) => {
             res.send(200, responseData)
         })
         .catch((err) => {
             res.send(404, err)
         })
+	} else if (req.params.period == 'month') {
+		service.readForOneMonth(req.params.date)
+        .then((responseData) => {
+            res.send(200, responseData)
+        })
+        .catch((err) => {
+            res.send(404, err)
+        })
+	}
     
     next()
 
 }
 
-server.get('/campo-grande/producao/:date', respond)
-server.head('/campo-grande/producao/:date', respond)
+server.get('/campo-grande/producao/:date/:period', respond)
+server.head('/campo-grande/producao/:date/:period', respond)
 
 module.exports = { server }
