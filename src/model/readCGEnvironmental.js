@@ -11,6 +11,7 @@ const requireAWSData = async (params) => {
 		let items = []
 		let types = []
 		let interval = []
+		let humidities = []
 		let PM1Numbers = []
 		let PM2Numbers = []
 		let PM4Numbers = []
@@ -51,6 +52,7 @@ const requireAWSData = async (params) => {
 						let massaPM10 = item.massaPM10
 						let windSpeed = item.ventor_vel
 						let averageSize = item.tamanho_medio
+						let humidity = item.hum
 
 						items.push({
 							date: formatedDate.hourMin,
@@ -66,7 +68,8 @@ const requireAWSData = async (params) => {
 							temperature: temperature || 0,
 							type: type || "null",
 							windDir: windDir || 0,
-							windSpeed: windSpeed || 0
+							windSpeed: windSpeed || 0,
+							humidity: humidity || 0
 						})
 
 						interval.push(formatedDate.hourMin)
@@ -95,6 +98,7 @@ const requireAWSData = async (params) => {
 							types.push(item.type)
 							windDirections.push(item.windDir)
 							windSpeeds.push(item.windSpeed)
+							humidities.push(item.humidity)
 						}
 					}
 				}
@@ -139,7 +143,8 @@ const requireAWSData = async (params) => {
 				quarters.PM4Particulates,
 				quarters.PM10Particulates,
 				quarters.averageSizes,
-				quarters.interval
+				quarters.interval,
+				humidities
 			])
 
 		})
@@ -234,8 +239,6 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 		requireAWSData(params)
 			.then((response) => {
 
-				console.log(response[1].length)
-
 				let items = {
 					interval: ( response[0].length ) ? response[0] : [0],
 					PM1Particulates: ( response[1].length ) ? response[1] : [0],
@@ -261,6 +264,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					PM10ParticulatesQuarters: ( response[21].length ) ? response[21] : [0],
 					averageSizesQuarters: ( response[22].length ) ? response[22] : [0],
 					quartersInterval: ( response[23].length ) ? response[23] : [0],
+					humidity: ( response[24].length ) ? response[24] : [0],
 					day: dateToRequest.day,
 					month: dateToRequest.month,
 					year: dateToRequest.year,
@@ -270,6 +274,9 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				resolve(items)
 			})
 			.catch((err) => {
+
+				console.log(err)
+
 				let items = {
 					interval: [0],
 					PM1Particulates: [0],
@@ -295,6 +302,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					PM10ParticulatesQuarters: [0],
 					averageSizesQuarters: [0],
 					quartersInterval: [0],
+					humidity: [0],
 					day: dateToRequest.day,
 					month: dateToRequest.month,
 					year: dateToRequest.year,
