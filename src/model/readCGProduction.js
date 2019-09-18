@@ -308,12 +308,14 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 					let totalAverage = (response.averages.length) ? response.averages.reduce((acc, cur) => acc + cur) : 0
 					let totalCapacityFactor = (response.capacityFactor.length) ? response.capacityFactor.reduce((acc, cur) => acc + cur) : 0
 					let totalProduction = parseFloat((response.totalProduction).toFixed(3)) || 0
-					let performanceRatio = response.performanceRatio || 0
+					let performanceRatio = response.performanceRatio || Infinity
 
 					averageProduction[day - 1] = parseFloat((totalAverage / 4).toFixed(3)) || 0
 					averageCapacityFactor[day - 1] = parseFloat((totalCapacityFactor / effectiveHours).toFixed(3)) || 0
 					totalProductions[day - 1] = totalProduction
 					performances[day - 1] = performanceRatio
+
+					console.log(performanceRatio)
 
 					monthInterval.push(day)
 					monthInterval.sort()
