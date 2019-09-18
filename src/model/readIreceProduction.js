@@ -217,12 +217,12 @@ IreceProductionServices.readForOneMonth = async (date) => {
 					let totalProductionTable5 = (response.table5.length) ? response.table5.reduce((acc, cur) => acc + cur) : 0
 					let totalProductionTable6 = (response.table6.length) ? response.table6.reduce((acc, cur) => acc + cur) : 0
 
-					averageProductionTable1[day - 1] = parseFloat((totalProductionTable1 / effectiveHours).toFixed(3)) || 0
-					averageProductionTable2[day - 1] = parseFloat((totalProductionTable2 / effectiveHours).toFixed(3)) || 0
-					averageProductionTable3[day - 1] = parseFloat((totalProductionTable3 / effectiveHours).toFixed(3)) || 0
-					averageProductionTable4[day - 1] = parseFloat((totalProductionTable4 / effectiveHours).toFixed(3)) || 0
-					averageProductionTable5[day - 1] = parseFloat((totalProductionTable5 / effectiveHours).toFixed(3)) || 0
-					averageProductionTable6[day - 1] = parseFloat((totalProductionTable6 / effectiveHours).toFixed(3)) || 0
+					averageProductionTable1[day - 1] = parseFloat((totalProductionTable1 / 4).toFixed(3)) || 0
+					averageProductionTable2[day - 1] = parseFloat((totalProductionTable2 / 4).toFixed(3)) || 0
+					averageProductionTable3[day - 1] = parseFloat((totalProductionTable3 / 4).toFixed(3)) || 0
+					averageProductionTable4[day - 1] = parseFloat((totalProductionTable4 / 4).toFixed(3)) || 0
+					averageProductionTable5[day - 1] = parseFloat((totalProductionTable5 / 4).toFixed(3)) || 0
+					averageProductionTable6[day - 1] = parseFloat((totalProductionTable6 / 4).toFixed(3)) || 0
 
 					monthInterval.push(day)
 					monthInterval.sort()

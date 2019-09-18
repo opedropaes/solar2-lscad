@@ -229,8 +229,8 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 
 				let totalIrradiation = (response[7].length) ? response[7].reduce((acc, cur) => acc + cur) : 0
 				let totalProduction = (response[8].length) ? response[8].reduce((acc, cur) => acc + parseFloat(cur)) : 0
-				let productionAverage = parseFloat((totalProduction/response[8].length).toFixed(3))
-				let irradiationAverage = parseFloat((totalIrradiation/response[7].length).toFixed(3))
+				let productionAverage = parseFloat((totalProduction / response[8].length).toFixed(3))
+				let irradiationAverage = parseFloat((totalIrradiation / response[7].length).toFixed(3))
 				let painelEfficiencyDegree = 0.175
 				let nominalProduction = parseFloat((irradiationAverage * painelEfficiencyDegree).toFixed(3))
 				let performanceRatio = parseFloat((productionAverage / nominalProduction).toFixed(2))
@@ -310,7 +310,7 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 					let totalProduction = parseFloat((response.totalProduction).toFixed(3)) || 0
 					let performanceRatio = response.performanceRatio || 0
 
-					averageProduction[day - 1] = parseFloat((totalAverage / effectiveHours).toFixed(3)) || 0
+					averageProduction[day - 1] = parseFloat((totalAverage / 4).toFixed(3)) || 0
 					averageCapacityFactor[day - 1] = parseFloat((totalCapacityFactor / effectiveHours).toFixed(3)) || 0
 					totalProductions[day - 1] = totalProduction
 					performances[day - 1] = performanceRatio
