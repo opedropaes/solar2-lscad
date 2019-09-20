@@ -11,7 +11,7 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 		if (type == 'production') {
 			params = {
 				TableName: "inversor_" + tablenumber + "_irece",
-				ProjectionExpression: "dia_mes_ano, hora_minuto, P_AC",
+				ProjectionExpression: "dia_mes_ano, hora_minuto, P_AC, I_AC, I_DC, V_AC, V_DC",
 				KeyConditionExpression: "dia_mes_ano = :inicio_data",
 				ExpressionAttributeValues: {
 					":inicio_data": parseInt(year + month + day),

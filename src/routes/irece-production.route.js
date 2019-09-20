@@ -1,10 +1,10 @@
 const server = require('../config/server').server
 const service = require('../model/readIreceProduction').IreceProductionServices
 
-server.get('/irece/producao/:date/:period', (req, res, next) => {
+server.get('/irece/producao/:table/:date/:period', (req, res, next) => {
     
     if (req.params.period == 'day') {
-		service.readForOneDay(req.params.date)
+		service.readForOneDay(req.params.date, req.params.table)
         .then((response) => {
             res.send(200, response)
         })
@@ -12,7 +12,7 @@ server.get('/irece/producao/:date/:period', (req, res, next) => {
             res.send(404, err)
         })
 	} else if(req.params.period == 'month') {
-		service.readForOneMonth(req.params.date)
+		service.readForOneMonth(req.params.date, req.params.table)
         .then((response) => {
             res.send(200, response)
         })
@@ -20,7 +20,7 @@ server.get('/irece/producao/:date/:period', (req, res, next) => {
             res.send(404, err)
         })
 	} else if(req.params.period == 'year') {
-		service.readForOneYear(req.params.date)
+		service.readForOneYear(req.params.date, req.params.table)
         .then((response) => {
             res.send(200, response)
         })
