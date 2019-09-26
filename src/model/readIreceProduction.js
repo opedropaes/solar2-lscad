@@ -317,6 +317,7 @@ IreceProductionServices.readForOneDay = async (date, table) => {
 				else if (table == 6) {
 
 					let items = {
+						table,
 						table1: response[0].table1,
 						table2: response[0].table2,
 						table3: response[0].table3,
@@ -379,7 +380,7 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 			days.map(day => {
 				IreceProductionServices.readForOneDay(dateToRequest.year + dateToRequest.month + day, table)
 					.then((response) => {
-						let totalProduction = (response.tableData.length) ? response.tableData.reduce((acc, cur) => acc + cur) : 0
+						let totalProduction = (response.production.length) ? response.production.reduce((acc, cur) => acc + cur) : 0
 
 						averageProduction[day - 1] = parseFloat((totalProduction / 4).toFixed(3)) || 0
 
@@ -388,8 +389,9 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 
 						if (monthInterval.length == days.length) {
 							items = {
+								success: true,
 								table,
-								tableData: averageProduction,
+								averages: averageProduction,
 								interval: monthInterval,
 								monthDay: dateToRequest.month + "/" + dateToRequest.year,
 								month: dateToRequest.month,
@@ -404,8 +406,9 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 					.catch((err) => {
 
 						let items = {
+							success: false,
 							table,
-							tableData: [0],
+							averages: [0],
 							interval: monthInterval,
 							monthDay: dateToRequest.month + "/" + dateToRequest.year,
 							month: dateToRequest.month,

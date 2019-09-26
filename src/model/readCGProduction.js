@@ -227,13 +227,22 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 		requireAWSData(params)
 			.then((response) => {
 
-				let totalIrradiation = (response[7].length) ? response[7].reduce((acc, cur) => acc + cur) : 0
+				let totalIrradiation = (response[7].length) ? response[7].reduce((acc, cur) => acc + parseFloat(cur)) : 0
 				let totalProduction = (response[8].length) ? response[8].reduce((acc, cur) => acc + parseFloat(cur)) : 0
-				let productionAverage = parseFloat((totalProduction / response[8].length).toFixed(3))
-				let irradiationAverage = parseFloat((totalIrradiation / response[7].length).toFixed(3))
+
+				let productionAverageValidatorIsNumber = (typeof parseFloat((totalProduction / response[8].length).toFixed(3)) == "number" && response[8].length > 0)
+				let productionAverage = (productionAverageValidatorIsNumber) ? parseFloat((totalProduction / response[8].length).toFixed(3)) : 0
+
+				let irradiationAverageIsNumber = (typeof parseFloat((totalIrradiation / response[7].length).toFixed(3)) == "number" && response[7].length > 0)
+				let irradiationAverage = (irradiationAverageIsNumber) ? parseFloat((totalIrradiation / response[7].length).toFixed(3)) : 0
+
 				let painelEfficiencyDegree = 0.175
-				let nominalProduction = parseFloat((irradiationAverage * painelEfficiencyDegree).toFixed(3))
-				let performanceRatio = parseFloat((productionAverage / nominalProduction).toFixed(2))
+
+				let nominalProductionIsNumber = (typeof parseFloat((irradiationAverage * painelEfficiencyDegree).toFixed(3)) == "number" && irradiationAverage * painelEfficiencyDegree	!= 0)
+				let nominalProduction = (nominalProductionIsNumber) ? parseFloat((irradiationAverage * painelEfficiencyDegree).toFixed(3)) : 1
+
+				let performanceRatioIsNumber = (typeof parseFloat((productionAverage / nominalProduction).toFixed(2)) == "number")
+				let performanceRatio = (performanceRatioIsNumber) ? parseFloat((productionAverage / nominalProduction).toFixed(2)) : 0
 
 				let items = {
 					period: 'day',
@@ -308,21 +317,23 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 					let totalAverage = (response.averages.length) ? response.averages.reduce((acc, cur) => acc + cur) : 0
 					let totalCapacityFactor = (response.capacityFactor.length) ? response.capacityFactor.reduce((acc, cur) => acc + cur) : 0
 					let totalProduction = parseFloat((response.totalProduction).toFixed(3)) || 0
-					let performanceRatio = response.performanceRatio || Infinity
+					let performanceRatioIsNumber = (typeof response.performanceRatio == "number")
+					let performanceRatio = (performanceRatioIsNumber) ? response.performanceRatio : 0
 
 					averageProduction[day - 1] = parseFloat((totalAverage / 4).toFixed(3)) || 0
 					averageCapacityFactor[day - 1] = parseFloat((totalCapacityFactor / effectiveHours).toFixed(3)) || 0
 					totalProductions[day - 1] = totalProduction
 					performances[day - 1] = performanceRatio
 
-					console.log(performanceRatio)
-
 					monthInterval.push(day)
 					monthInterval.sort()
 
 					if (monthInterval.length == days.length) {
+						
+						// console.log(performances)
 
-						let totalPerformanceRatio = performances.reduce((acc, cur) => acc + cur) || 0
+						let totalPerformanceRatio = performances.reduce((acc, cur) => acc + parseFloat(cur)) || 0
+
 						let effectivePerformanceDays = performances.filter((effectiveDay) => { return effectiveDay > 0 })
 						let totalPerformanceRatioAverage = totalPerformanceRatio / effectivePerformanceDays.length
 						let totalPerformanceRatioComparison = [
