@@ -318,7 +318,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 		irradiationReader.readForOneDay(dateToRequest.year + dateToRequest.month + dateToRequest.day)
 			.then(response => {
 				resolve({ 
-					irradiation: response.irradiationQuarters,
+					irradiation: response.irradiationAverages,
 					interval: response.interval,
 					completeIrradiation: response.completeIrradiation,
 					completeInterval: response.completeInterval

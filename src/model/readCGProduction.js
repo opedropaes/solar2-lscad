@@ -123,6 +123,7 @@ const requireAWSData = async (params) => {
 				response.irradiationQuarters,
 				completeInterval,
 				sortedIrradiation,
+				response.irradiationAverage
 			])
 
 		})
@@ -133,7 +134,9 @@ const dataAverage = (data, dates) => {
 
 	try {
 		let minutesSum = 0
+		let irradiationMinuteSum = 0
 		let qtd = 0
+		let irradiationCounter = 0
 
 		let capacityFactor = []
 		let interval = []
@@ -143,6 +146,7 @@ const dataAverage = (data, dates) => {
 		let alternateTension = []
 		let continuousTension = []
 		let irradiation = []
+		let irradiationAverage = []
 		let totalProduction = []
 		let irradiationQuarters = []
 
@@ -156,6 +160,9 @@ const dataAverage = (data, dates) => {
 			minutesSum += parseFloat(data[i].pac)
 			qtd++
 
+			irradiationMinuteSum += parseFloat(data[i].irr)
+			irradiationCounter++
+
 			if (minute % 15 == 0) {
 
 				capacityFactor.push(parseFloat(((minutesSum / qtd) / 8.2).toFixed(3)))
@@ -166,9 +173,12 @@ const dataAverage = (data, dates) => {
 				continuousTension.push(data[i].vdc)
 				irradiationQuarters.push(data[i].irr)
 				interval.push(dates[i])
+				irradiationAverage.push(parseFloat((irradiationMinuteSum / irradiationCounter).toFixed(2)))
 
-				minutesSum = 0
 				qtd = 0
+				minutesSum = 0
+				irradiationCounter = 0
+				irradiationMinuteSum = 0
 
 			}
 
@@ -184,7 +194,8 @@ const dataAverage = (data, dates) => {
 			continuousTension,
 			irradiation,
 			totalProduction,
-			irradiationQuarters
+			irradiationQuarters,
+			irradiationAverage,
 		}
 
 	} catch (error) {
@@ -253,6 +264,7 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 					interval: response[1],
 					irradiation: response[7],
 					irradiationQuarters: response[9],
+					irradiationAverages: response[12],
 					capacityFactor: response[2],
 					alternateCurrent: response[3],
 					alternateTension: response[5],
@@ -330,8 +342,6 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 
 					if (monthInterval.length == days.length) {
 						
-						// console.log(performances)
-
 						let totalPerformanceRatio = performances.reduce((acc, cur) => acc + parseFloat(cur)) || 0
 
 						let effectivePerformanceDays = performances.filter((effectiveDay) => { return effectiveDay > 0 })
