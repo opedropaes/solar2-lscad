@@ -59,7 +59,7 @@ const requireAWSData = async (params) => {
 							massaPM1: massaPM1 || 0,
 							massaPM2: massaPM2 || 0,
 							massaPM4: massaPM4 || 0,
-							massaPM10: massaPM10 || 0 ,
+							massaPM10: massaPM10 || 0,
 							numPM1: numPM1 || 0,
 							numPM2: numPM2 || 0,
 							numPM4: numPM4 || 0,
@@ -239,32 +239,105 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 		requireAWSData(params)
 			.then((response) => {
 
+				//Temperatura
+
+				let temperature = response[10]
+				let temperatureExists = (!isNaN(temperature.length))
+				
+				let totalTemperature = 0
+				let higherTemperature = 0
+				let lowerTemperature = 100
+				
+				temperature.map(item => {
+					totalTemperature += parseFloat(item)
+					if (item < lowerTemperature && item != 0)
+						lowerTemperature = item
+					if (item > higherTemperature)
+						higherTemperature = item
+				})
+
+				let averageTemperature = totalTemperature / ((temperatureExists) ? temperature.length : 1)
+
+				//Umidade
+
+				let humidity = response[24]
+				let humidityExists = (!isNaN(humidity))
+				let totalHumidity = 0
+
+				humidity.map(item => {
+					totalHumidity += parseFloat(item)
+				})
+
+				//Velocidade do vento
+
+				let windSpeed = response[13]
+				let windSpeedExists = (!isNaN(windSpeed))
+
+				let totalWindspeed = 0
+
+				windSpeed.map(item => {
+					totalWindspeed = parseFloat(item)
+				})
+
+				let averageWindSpeed = totalWindspeed / ((windSpeedExists) ? windSpeed.length : 1)
+
+				//Particulados PM1
+
+				let pm1 = response[1]
+				let pm1Exists = (!isNaN(pm1.length))
+				let totalPM1 = 0
+
+				pm1.map(item => {
+					totalPM1 += parseFloat(item)
+				})
+
+				let averagePM1 = totalPM1 / ((pm1Exists) ? pm1.length : 1)
+
+				//Particulados PM2
+
+				let pm2 = response[2]
+				let pm2Exists = (!isNaN(pm2.length))
+				let totalPM2 = 0
+
+				pm2.map(item => {
+					totalPM2 += parseFloat(item)
+				})
+
+				let averagePM2 = totalPM2 / ((pm2Exists) ? pm2.length : 1)
+
 				let items = {
-					interval: ( response[0].length ) ? response[0] : [0],
-					PM1Particulates: ( response[1].length ) ? response[1] : [0],
-					PM2Particulates: ( response[2].length ) ? response[2] : [0],
-					PM4Particulates: ( response[3].length ) ? response[3] : [0],
-					PM10Particulates: ( response[4].length ) ? response[4] : [0],
-					PM1Numbers: ( response[5].length ) ? response[5] : [0],
-					PM2Numbers: ( response[6].length ) ? response[6] : [0],
-					PM4Numbers: ( response[7].length ) ? response[7] : [0],
-					PM10Numbers: ( response[8].length ) ? response[8] : [0],
-					averageSizes: ( response[9].length ) ? response[9] : [0],
-					temperatures: ( response[10].length ) ? response[10] : [0],
-					types: ( response[11].length ) ? response[11] : [0],
-					windDirections: ( response[12].length ) ? response[12] : [0],
-					windSpeeds: ( response[13].length ) ? response[13] : [0],
-					PM1NumbersQuarters: ( response[14].length ) ? response[14] : [0],
-					PM2NumbersQuarters: ( response[15].length ) ? response[15] : [0],
-					PM4NumbersQuarters: ( response[16].length ) ? response[16] : [0],
-					PM10NumbersQuarters:( response[17].length ) ? response[17] : [0],
-					PM1ParticulatesQuarters: ( response[18].length ) ? response[18] : [0],
-					PM2ParticulatesQuarters: ( response[19].length ) ? response[19] : [0],
-					PM4ParticulatesQuarters: ( response[20].length ) ? response[20] : [0],
-					PM10ParticulatesQuarters: ( response[21].length ) ? response[21] : [0],
-					averageSizesQuarters: ( response[22].length ) ? response[22] : [0],
-					quartersInterval: ( response[23].length ) ? response[23] : [0],
-					humidity: ( response[24].length ) ? response[24] : [0],
+					interval: (response[0].length) ? response[0] : [0],
+					PM1Particulates: (response[1].length) ? response[1] : [0],
+					averagePM1: parseFloat((averagePM1).toFixed(2)),
+					PM2Particulates: (response[2].length) ? response[2] : [0],
+					averagePM2: parseFloat((averagePM2).toFixed(2)),
+					PM4Particulates: (response[3].length) ? response[3] : [0],
+					PM10Particulates: (response[4].length) ? response[4] : [0],
+					PM1Numbers: (response[5].length) ? response[5] : [0],
+					PM2Numbers: (response[6].length) ? response[6] : [0],
+					PM4Numbers: (response[7].length) ? response[7] : [0],
+					PM10Numbers: (response[8].length) ? response[8] : [0],
+					averageSizes: (response[9].length) ? response[9] : [0],
+					temperatures: (response[10].length) ? response[10] : [0],
+					averageTemperature: parseFloat((averageTemperature).toFixed(2)),
+					lowerTemperature,
+					higherTemperature,
+					types: (response[11].length) ? response[11] : [0],
+					windDirections: (response[12].length) ? response[12] : [0],
+					windSpeeds: (response[13].length) ? response[13] : [0],
+					averageWindSpeed,
+					PM1NumbersQuarters: (response[14].length) ? response[14] : [0],
+					PM2NumbersQuarters: (response[15].length) ? response[15] : [0],
+					PM4NumbersQuarters: (response[16].length) ? response[16] : [0],
+					PM10NumbersQuarters: (response[17].length) ? response[17] : [0],
+					PM1ParticulatesQuarters: (response[18].length) ? response[18] : [0],
+					PM2ParticulatesQuarters: (response[19].length) ? response[19] : [0],
+					PM4ParticulatesQuarters: (response[20].length) ? response[20] : [0],
+					PM10ParticulatesQuarters: (response[21].length) ? response[21] : [0],
+					averageSizesQuarters: (response[22].length) ? response[22] : [0],
+					quartersInterval: (response[23].length) ? response[23] : [0],
+					humidity: (response[24].length) ? response[24] : [0],
+					accumulateHumidity: totalHumidity,
 					day: dateToRequest.day,
 					month: dateToRequest.month,
 					year: dateToRequest.year,
@@ -280,7 +353,9 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				let items = {
 					interval: [0],
 					PM1Particulates: [0],
+					averagePM1: 0,
 					PM2Particulates: [0],
+					averagePM2: 0,
 					PM4Particulates: [0],
 					PM10Particulates: [0],
 					PM1Numbers: [0],
@@ -289,9 +364,13 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					PM10Numbers: [0],
 					averageSizes: [0],
 					temperatures: [0],
+					averageTemperature: 0,
+					lowerTemperature: 0,
+					higherTemperature: 0,
 					types: [0],
 					windDirections: [0],
 					windSpeeds: [0],
+					averageWindSpeed: 0,
 					PM1NumbersQuarters: [0],
 					PM2NumbersQuarters: [0],
 					PM4NumbersQuarters: [0],
@@ -303,6 +382,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					averageSizesQuarters: [0],
 					quartersInterval: [0],
 					humidity: [0],
+					accumulateHumidity: 0,
 					day: dateToRequest.day,
 					month: dateToRequest.month,
 					year: dateToRequest.year,
@@ -317,11 +397,30 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 	let promiseIrr = new Promise((resolve, reject) => {
 		irradiationReader.readForOneDay(dateToRequest.year + dateToRequest.month + dateToRequest.day)
 			.then(response => {
-				resolve({ 
-					irradiation: response.irradiationAverages,
-					interval: response.interval,
-					completeIrradiation: response.completeIrradiation,
-					completeInterval: response.completeInterval
+
+				let { irradiationAverages, interval, completeIrradiation, completeInterval } = response
+
+				let totalIrradiation = 0
+				let higherIrradiation = 0
+
+				irradiationAverages.map((item) => {
+						totalIrradiation += (item * 1000)
+						if (item > higherIrradiation) {
+							higherIrradiation = item
+						} 
+				})
+				
+				let averageIrradiation = totalIrradiation / ((irradiationAverages.length) ? irradiationAverages.length : 1)
+
+				resolve({
+					irradiation: irradiationAverages,
+					interval: interval,
+					completeIrradiation: completeIrradiation,
+					completeInterval: completeInterval,
+					accumulateIrradiation: totalIrradiation,
+					averageIrradiation: parseFloat((averageIrradiation).toFixed(2)),
+					higherIrradiation: parseFloat(higherIrradiation * 1000)
+
 				})
 			})
 			.catch(err => {
@@ -329,7 +428,10 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					irradiation: [0],
 					interval: [0],
 					completeIrradiation: [0],
-					completeInterval: [0]
+					completeInterval: [0],
+					accumulateIrradiation: 0,
+					averageIrradiation: 0,
+					higherIrradiation: 0
 				})
 			})
 	})
