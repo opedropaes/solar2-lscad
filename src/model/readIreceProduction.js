@@ -453,7 +453,7 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 			})
 
 		})
-	} 
+	}
 
 	else if (table == 6) {
 		return new Promise((resolve, reject) => {
@@ -475,26 +475,26 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 						let totalProductionTable4 = (response.table4.length) ? response.table4.reduce((acc, cur) => acc + parseFloat(cur)) : 0
 						let totalProductionTable5 = (response.table5.length) ? response.table5.reduce((acc, cur) => acc + parseFloat(cur)) : 0
 						let totalProductionTable6 = (response.table6.length) ? response.table6.reduce((acc, cur) => acc + parseFloat(cur)) : 0
-						
+
 						let averageTable1 = (response.table1.length) ? totalProductionTable1 / 4 : 0
 						let averageTable2 = (response.table2.length) ? totalProductionTable2 / 4 : 0
 						let averageTable3 = (response.table3.length) ? totalProductionTable3 / 4 : 0
 						let averageTable4 = (response.table4.length) ? totalProductionTable4 / 4 : 0
 						let averageTable5 = (response.table5.length) ? totalProductionTable5 / 4 : 0
 						let averageTable6 = (response.table6.length) ? totalProductionTable6 / 4 : 0
-												
+
 						table1.push(parseFloat((averageTable1).toFixed(3)))
 						table2.push(parseFloat((averageTable2).toFixed(3)))
 						table3.push(parseFloat((averageTable3).toFixed(3)))
 						table4.push(parseFloat((averageTable4).toFixed(3)))
 						table5.push(parseFloat((averageTable5).toFixed(3)))
 						table6.push(parseFloat((averageTable6).toFixed(3)))
-	
+
 						monthInterval.push(day)
 						monthInterval.sort()
-	
+
 						if (monthInterval.length == days.length) {
-	
+
 							items = {
 								table,
 								table1,
@@ -509,13 +509,13 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 								year: dateToRequest.year,
 								period: 'month'
 							}
-	
+
 							resolve(items)
 						}
-	
+
 					})
 					.catch((err) => {
-	
+
 						items = {
 							err,
 							table,
@@ -531,12 +531,12 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 							year: dateToRequest.year,
 							period: 'month'
 						}
-						
+
 						resolve(items)
-	
+
 					})
 			})
-	
+
 		})
 	}
 

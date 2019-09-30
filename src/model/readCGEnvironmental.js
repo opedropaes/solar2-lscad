@@ -2,6 +2,7 @@ const tableDefiner = require('./define-table')
 const dateFormater = require('./format-date')
 const AWSConfig = require('../config/config')
 const irradiationReader = require('./readCGProduction').CampoGrandeProductionServices
+const daysInMonthDefiner = require('../utils/daysInMonthDefiner')
 
 const docClient = AWSConfig.docClient;
 
@@ -243,11 +244,11 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 
 				let temperature = response[10]
 				let temperatureExists = (!isNaN(temperature.length))
-				
+
 				let totalTemperature = 0
 				let higherTemperature = 0
 				let lowerTemperature = 100
-				
+
 				temperature.map(item => {
 					totalTemperature += parseFloat(item)
 					if (item < lowerTemperature && item != 0)
@@ -255,6 +256,12 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					if (item > higherTemperature)
 						higherTemperature = item
 				})
+
+				if (lowerTemperature === 100)
+					lowerTemperature = undefined
+				
+				if (higherTemperature === 0)
+					higherTemperature = undefined
 
 				let averageTemperature = totalTemperature / ((temperatureExists) ? temperature.length : 1)
 
@@ -264,9 +271,11 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				let humidityExists = (!isNaN(humidity))
 				let totalHumidity = 0
 
-				humidity.map(item => {
-					totalHumidity += parseFloat(item)
-				})
+				for (let i = 0; i < humidity.length; i++) {
+					if (humidity[i] != humidity[i + 1]) {
+						totalHumidity += parseFloat(humidity[i] / 1000)
+					}
+				}
 
 				//Velocidade do vento
 
@@ -309,8 +318,10 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					interval: (response[0].length) ? response[0] : [0],
 					PM1Particulates: (response[1].length) ? response[1] : [0],
 					averagePM1: parseFloat((averagePM1).toFixed(2)),
+					totalPM1: parseFloat((totalPM1).toFixed(2)),
 					PM2Particulates: (response[2].length) ? response[2] : [0],
 					averagePM2: parseFloat((averagePM2).toFixed(2)),
+					totalPM2: parseFloat((totalPM2).toFixed(2)),
 					PM4Particulates: (response[3].length) ? response[3] : [0],
 					PM10Particulates: (response[4].length) ? response[4] : [0],
 					PM1Numbers: (response[5].length) ? response[5] : [0],
@@ -337,7 +348,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					averageSizesQuarters: (response[22].length) ? response[22] : [0],
 					quartersInterval: (response[23].length) ? response[23] : [0],
 					humidity: (response[24].length) ? response[24] : [0],
-					accumulateHumidity: totalHumidity,
+					accumulateHumidity: parseFloat((totalHumidity).toFixed(2)),
 					day: dateToRequest.day,
 					month: dateToRequest.month,
 					year: dateToRequest.year,
@@ -404,12 +415,12 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				let higherIrradiation = 0
 
 				irradiationAverages.map((item) => {
-						totalIrradiation += (item * 1000)
-						if (item > higherIrradiation) {
-							higherIrradiation = item
-						} 
+					totalIrradiation += (item * 1000)
+					if (item > higherIrradiation) {
+						higherIrradiation = item
+					}
 				})
-				
+
 				let averageIrradiation = totalIrradiation / ((irradiationAverages.length) ? irradiationAverages.length : 1)
 
 				resolve({
@@ -437,6 +448,117 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 	})
 
 	return Promise.all([promiseIrr, promiseEnv])
+}
+
+CampoGrandeEnvironmentalServices.readForOneMonth = async (date) => {
+
+	let items = {}
+	let monthInterval = []
+	let averageIrradiations = []
+	let higherIrradiations = []
+	let averageTemperatures = []
+	let higherTemperatures = []
+	let lowerTemperatures = []
+	let accumulateHumidities = []
+	let averageWindSpeeds = []
+	let accumulatePM1 = []
+	let averagesPM1 = []
+	let accumulatePM2 = []
+	let averagesPM2 = []
+
+	let dateToRequest = {
+		month:
+			date[4] +
+			date[5],
+		year:
+			date[0] +
+			date[1] +
+			date[2] +
+			date[3]
+	}
+
+	let daysThisMonth = daysInMonthDefiner.howMayDaysThisMonth(dateToRequest.month)
+	let days = []
+
+	for (let i = 1; i <= daysThisMonth; i++) {
+		days.push((i < 10) ? "0" + i : i)
+	}
+
+	return new Promise((resolve, reject) => {
+		days.map(day => {
+			CampoGrandeEnvironmentalServices.readForOneDay(dateToRequest.year + dateToRequest.month + day)
+				.then(response => {
+
+					monthInterval.push(day)
+					monthInterval.sort()
+
+					averageIrradiations[day - 1] = response[0].averageIrradiation
+					higherIrradiations[day - 1] = response[0].higherIrradiation
+					averageTemperatures[day - 1] = response[1].averageTemperature
+					higherTemperatures[day - 1] = response[1].higherTemperature
+					lowerTemperatures[day - 1] = response[1].lowerTemperature
+					accumulateHumidities[day - 1] = response[1].accumulateHumidity
+					averageWindSpeeds[day - 1] = response[1].averageWindSpeed
+					accumulatePM1[day - 1] = response[1].totalPM1
+					averagesPM1[day - 1] = response[1].averagePM1
+					accumulatePM2[day - 1] = response[1].totalPM2
+					averagesPM2[day - 1] = response[1].averagePM2
+
+					if (monthInterval.length === days.length) {
+
+						items = {
+							monthInterval,
+							averageIrradiations,
+							higherIrradiations,
+							averageTemperatures,
+							higherTemperatures,
+							lowerTemperatures,
+							accumulateHumidities,
+							averageWindSpeeds,
+							accumulatePM1,
+							averagesPM1,
+							accumulatePM2,
+							averagesPM2,
+							month: dateToRequest.month,
+							year: dateToRequest.year,
+							monthDay: dateToRequest.month + '/' + dateToRequest.year
+						}
+
+						resolve(items)
+
+					}
+
+
+				})
+				.catch(err => {
+
+					console.log(err)
+
+					items = {
+						err,
+						monthInterval: [0],
+						averageIrradiations: [0],
+						higherIrradiations: [0],
+						averageTemperatures: [0],
+						higherTemperatures: [0],
+						lowerTemperatures: [0],
+						accumulateHumidities: [0],
+						averageWindSpeeds: [0],
+						accumulatePM1: [0],
+						averagesPM1: [0],
+						accumulatePM2: [0],
+						averagesPM2: [0],
+						month: dateToRequest.month,
+						year: dateToRequest.year,
+						monthDay: dateToRequest.month + '/' + dateToRequest.year
+					}
+
+					resolve(items)
+
+				})
+		})
+	})
+
 }
 
 module.exports = { CampoGrandeEnvironmentalServices }
