@@ -123,6 +123,7 @@ const requireAWSData = async (params) => {
 				response.irradiationQuarters,
 				completeInterval,
 				sortedIrradiation,
+				response.irradiationAverage
 			])
 
 		})
@@ -133,7 +134,9 @@ const dataAverage = (data, dates) => {
 
 	try {
 		let minutesSum = 0
+		let irradiationMinuteSum = 0
 		let qtd = 0
+		let irradiationCounter = 0
 
 		let capacityFactor = []
 		let interval = []
@@ -143,6 +146,7 @@ const dataAverage = (data, dates) => {
 		let alternateTension = []
 		let continuousTension = []
 		let irradiation = []
+		let irradiationAverage = []
 		let totalProduction = []
 		let irradiationQuarters = []
 
@@ -156,6 +160,9 @@ const dataAverage = (data, dates) => {
 			minutesSum += parseFloat(data[i].pac)
 			qtd++
 
+			irradiationMinuteSum += parseFloat(data[i].irr)
+			irradiationCounter++
+
 			if (minute % 15 == 0) {
 
 				capacityFactor.push(parseFloat(((minutesSum / qtd) / 8.2).toFixed(3)))
@@ -166,9 +173,12 @@ const dataAverage = (data, dates) => {
 				continuousTension.push(data[i].vdc)
 				irradiationQuarters.push(data[i].irr)
 				interval.push(dates[i])
+				irradiationAverage.push(parseFloat((irradiationMinuteSum / irradiationCounter).toFixed(2)))
 
-				minutesSum = 0
 				qtd = 0
+				minutesSum = 0
+				irradiationCounter = 0
+				irradiationMinuteSum = 0
 
 			}
 
@@ -184,7 +194,8 @@ const dataAverage = (data, dates) => {
 			continuousTension,
 			irradiation,
 			totalProduction,
-			irradiationQuarters
+			irradiationQuarters,
+			irradiationAverage,
 		}
 
 	} catch (error) {
@@ -227,13 +238,22 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 		requireAWSData(params)
 			.then((response) => {
 
-				let totalIrradiation = (response[7].length) ? response[7].reduce((acc, cur) => acc + cur) : 0
+				let totalIrradiation = (response[7].length) ? response[7].reduce((acc, cur) => acc + parseFloat(cur)) : 0
 				let totalProduction = (response[8].length) ? response[8].reduce((acc, cur) => acc + parseFloat(cur)) : 0
-				let productionAverage = parseFloat((totalProduction / response[8].length).toFixed(3))
-				let irradiationAverage = parseFloat((totalIrradiation / response[7].length).toFixed(3))
+
+				let productionAverageValidatorIsNumber = (typeof parseFloat((totalProduction / response[8].length).toFixed(3)) == "number" && response[8].length > 0)
+				let productionAverage = (productionAverageValidatorIsNumber) ? parseFloat((totalProduction / response[8].length).toFixed(3)) : 0
+
+				let irradiationAverageIsNumber = (typeof parseFloat((totalIrradiation / response[7].length).toFixed(3)) == "number" && response[7].length > 0)
+				let irradiationAverage = (irradiationAverageIsNumber) ? parseFloat((totalIrradiation / response[7].length).toFixed(3)) : 0
+
 				let painelEfficiencyDegree = 0.175
-				let nominalProduction = parseFloat((irradiationAverage * painelEfficiencyDegree).toFixed(3))
-				let performanceRatio = parseFloat((productionAverage / nominalProduction).toFixed(2))
+
+				let nominalProductionIsNumber = (typeof parseFloat((irradiationAverage * painelEfficiencyDegree).toFixed(3)) == "number" && irradiationAverage * painelEfficiencyDegree	!= 0)
+				let nominalProduction = (nominalProductionIsNumber) ? parseFloat((irradiationAverage * painelEfficiencyDegree).toFixed(3)) : 1
+
+				let performanceRatioIsNumber = (typeof parseFloat((productionAverage / nominalProduction).toFixed(2)) == "number")
+				let performanceRatio = (performanceRatioIsNumber) ? parseFloat((productionAverage / nominalProduction).toFixed(2)) : 0
 
 				let items = {
 					period: 'day',
@@ -244,6 +264,7 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 					interval: response[1],
 					irradiation: response[7],
 					irradiationQuarters: response[9],
+					irradiationAverages: response[12],
 					capacityFactor: response[2],
 					alternateCurrent: response[3],
 					alternateTension: response[5],
@@ -308,21 +329,21 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 					let totalAverage = (response.averages.length) ? response.averages.reduce((acc, cur) => acc + cur) : 0
 					let totalCapacityFactor = (response.capacityFactor.length) ? response.capacityFactor.reduce((acc, cur) => acc + cur) : 0
 					let totalProduction = parseFloat((response.totalProduction).toFixed(3)) || 0
-					let performanceRatio = response.performanceRatio || Infinity
+					let performanceRatioIsNumber = (typeof response.performanceRatio == "number")
+					let performanceRatio = (performanceRatioIsNumber) ? response.performanceRatio : 0
 
 					averageProduction[day - 1] = parseFloat((totalAverage / 4).toFixed(3)) || 0
 					averageCapacityFactor[day - 1] = parseFloat((totalCapacityFactor / effectiveHours).toFixed(3)) || 0
 					totalProductions[day - 1] = totalProduction
 					performances[day - 1] = performanceRatio
 
-					console.log(performanceRatio)
-
 					monthInterval.push(day)
 					monthInterval.sort()
 
 					if (monthInterval.length == days.length) {
+						
+						let totalPerformanceRatio = performances.reduce((acc, cur) => acc + parseFloat(cur)) || 0
 
-						let totalPerformanceRatio = performances.reduce((acc, cur) => acc + cur) || 0
 						let effectivePerformanceDays = performances.filter((effectiveDay) => { return effectiveDay > 0 })
 						let totalPerformanceRatioAverage = totalPerformanceRatio / effectivePerformanceDays.length
 						let totalPerformanceRatioComparison = [

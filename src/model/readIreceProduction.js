@@ -231,7 +231,7 @@ const allPromises = async (date, table) => {
 
 	})
 
-	const environmentalPromise = new Promise ((resolve, reject) => {
+	const environmentalPromise = new Promise((resolve, reject) => {
 
 		ireceEnvironmental.readForOneDay(dateToRequest.year + dateToRequest.month + dateToRequest.day)
 			.then(response => {
@@ -317,6 +317,7 @@ IreceProductionServices.readForOneDay = async (date, table) => {
 				else if (table == 6) {
 
 					let items = {
+						table,
 						table1: response[0].table1,
 						table2: response[0].table2,
 						table3: response[0].table3,
@@ -338,8 +339,7 @@ IreceProductionServices.readForOneDay = async (date, table) => {
 				}
 			})
 			.catch(err => {
-				
-				console.log(err)
+
 				reject(err)
 
 			})
@@ -347,8 +347,14 @@ IreceProductionServices.readForOneDay = async (date, table) => {
 
 }
 
-//Corrigir aqui com base no novo retorno do de cima
 IreceProductionServices.readForOneMonth = async (date, table) => {
+
+	let items = {}
+	let monthInterval = []
+	let averageProduction = []
+	let averageCapacityFactor = []
+	let totalProductions = []
+	let performances = []
 
 	let dateToRequest = {
 		month:
@@ -361,35 +367,58 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 			date[3]
 	}
 
-	return new Promise((resolve, reject) => {
+	let daysThisMonth = daysInMonthDefiner.howMayDaysThisMonth(dateToRequest.month)
+	let days = []
 
-		let items = {}
-		let monthInterval = []
-		let daysThisMonth = daysInMonthDefiner.howMayDaysThisMonth(dateToRequest.month)
-		let days = []
+	for (let i = 1; i <= daysThisMonth; i++) {
+		days.push((i < 10) ? "0" + i : i)
+	}
 
-		for (let i = 1; i <= daysThisMonth; i++) {
-			days.push((i < 10) ? "0" + i : i)
-		}
-
-		if (table < 6) {
-
-			let averageProduction = []
-
+	if (table < 6) {
+		return new Promise((resolve, reject) => {
 			days.map(day => {
 				IreceProductionServices.readForOneDay(dateToRequest.year + dateToRequest.month + day, table)
 					.then((response) => {
-						let totalProduction = (response.tableData.length) ? response.tableData.reduce((acc, cur) => acc + cur) : 0
 
-						averageProduction[day - 1] = parseFloat((totalProduction / 4).toFixed(3)) || 0
+						let totalAverage = (response.production.length) ? response.production.reduce((acc, cur) => acc + cur) : 0
+						let totalCapacityFactor = (response.capacityFactor.length) ? response.capacityFactor.reduce((acc, cur) => acc + cur) : 0
+						let totalProduction = parseFloat((response.totalProduction).toFixed(3)) || 0
+						let performanceRatioIsNumber = (typeof response.performanceRatio == "number")
+						let performanceRatio = (performanceRatioIsNumber) ? response.performanceRatio : 0
+
+						averageProduction[day - 1] = parseFloat((totalAverage / 4).toFixed(3)) || 0
+						averageCapacityFactor[day - 1] = parseFloat((totalCapacityFactor / response.capacityFactor.length).toFixed(3)) || 0
+						totalProductions[day - 1] = totalProduction
+						performances[day - 1] = performanceRatio
 
 						monthInterval.push(day)
 						monthInterval.sort()
 
 						if (monthInterval.length == days.length) {
+
+							let totalPerformanceRatio = 0
+
+							if (performances.length) {
+								performances.map((item) => {
+									if (!isNaN(item))
+										totalPerformanceRatio += parseFloat(item)
+								})
+							}
+
+							let effectivePerformanceDays = performances.filter((effectiveDay) => { return effectiveDay > 0 })
+							let totalPerformanceRatioAverage = totalPerformanceRatio / effectivePerformanceDays.length
+							let totalPerformanceRatioComparison = [
+								parseFloat((totalPerformanceRatioAverage).toFixed(2)),
+								parseFloat((100 - totalPerformanceRatioAverage).toFixed(2))
+							]
+
 							items = {
 								table,
-								tableData: averageProduction,
+								averages: averageProduction,
+								capacityFactor: averageCapacityFactor,
+								productions: totalProductions,
+								performances: performances,
+								performanceRatioComparison: totalPerformanceRatioComparison,
 								interval: monthInterval,
 								monthDay: dateToRequest.month + "/" + dateToRequest.year,
 								month: dateToRequest.month,
@@ -404,9 +433,14 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 					.catch((err) => {
 
 						let items = {
+							err,
 							table,
-							tableData: [0],
-							interval: monthInterval,
+							averages: [0],
+							capacityFactor: [0],
+							productions: [0],
+							performances: [0],
+							performanceRatioComparison: [0],
+							interval: [0],
 							monthDay: dateToRequest.month + "/" + dateToRequest.year,
 							month: dateToRequest.month,
 							year: dateToRequest.year,
@@ -417,46 +451,58 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 
 					})
 			})
-		}
 
-		else if (table == 6) {
+		})
+	}
 
-			let averageProductionTable1 = []
-			let averageProductionTable2 = []
-			let averageProductionTable3 = []
-			let averageProductionTable4 = []
-			let averageProductionTable5 = []
-			let averageProductionTable6 = []
+	else if (table == 6) {
+		return new Promise((resolve, reject) => {
+
+			let table1 = []
+			let table2 = []
+			let table3 = []
+			let table4 = []
+			let table5 = []
+			let table6 = []
 
 			days.map(day => {
 				IreceProductionServices.readForOneDay(dateToRequest.year + dateToRequest.month + day, table)
 					.then((response) => {
 
-						let totalProductionTable1 = (response.table1.length) ? response.table1.reduce((acc, cur) => acc + cur) : 0
-						let totalProductionTable2 = (response.table2.length) ? response.table2.reduce((acc, cur) => acc + cur) : 0
-						let totalProductionTable3 = (response.table3.length) ? response.table3.reduce((acc, cur) => acc + cur) : 0
-						let totalProductionTable4 = (response.table4.length) ? response.table4.reduce((acc, cur) => acc + cur) : 0
-						let totalProductionTable5 = (response.table5.length) ? response.table5.reduce((acc, cur) => acc + cur) : 0
-						let totalProductionTable6 = (response.table6.length) ? response.table6.reduce((acc, cur) => acc + cur) : 0
+						let totalProductionTable1 = (response.table1.length) ? response.table1.reduce((acc, cur) => acc + parseFloat(cur)) : 0
+						let totalProductionTable2 = (response.table2.length) ? response.table2.reduce((acc, cur) => acc + parseFloat(cur)) : 0
+						let totalProductionTable3 = (response.table3.length) ? response.table3.reduce((acc, cur) => acc + parseFloat(cur)) : 0
+						let totalProductionTable4 = (response.table4.length) ? response.table4.reduce((acc, cur) => acc + parseFloat(cur)) : 0
+						let totalProductionTable5 = (response.table5.length) ? response.table5.reduce((acc, cur) => acc + parseFloat(cur)) : 0
+						let totalProductionTable6 = (response.table6.length) ? response.table6.reduce((acc, cur) => acc + parseFloat(cur)) : 0
 
-						averageProductionTable1[day - 1] = parseFloat((totalProductionTable1 / 4).toFixed(3)) || 0
-						averageProductionTable2[day - 1] = parseFloat((totalProductionTable2 / 4).toFixed(3)) || 0
-						averageProductionTable3[day - 1] = parseFloat((totalProductionTable3 / 4).toFixed(3)) || 0
-						averageProductionTable4[day - 1] = parseFloat((totalProductionTable4 / 4).toFixed(3)) || 0
-						averageProductionTable5[day - 1] = parseFloat((totalProductionTable5 / 4).toFixed(3)) || 0
-						averageProductionTable6[day - 1] = parseFloat((totalProductionTable6 / 4).toFixed(3)) || 0
+						let averageTable1 = (response.table1.length) ? totalProductionTable1 / 4 : 0
+						let averageTable2 = (response.table2.length) ? totalProductionTable2 / 4 : 0
+						let averageTable3 = (response.table3.length) ? totalProductionTable3 / 4 : 0
+						let averageTable4 = (response.table4.length) ? totalProductionTable4 / 4 : 0
+						let averageTable5 = (response.table5.length) ? totalProductionTable5 / 4 : 0
+						let averageTable6 = (response.table6.length) ? totalProductionTable6 / 4 : 0
+
+						table1.push(parseFloat((averageTable1).toFixed(3)))
+						table2.push(parseFloat((averageTable2).toFixed(3)))
+						table3.push(parseFloat((averageTable3).toFixed(3)))
+						table4.push(parseFloat((averageTable4).toFixed(3)))
+						table5.push(parseFloat((averageTable5).toFixed(3)))
+						table6.push(parseFloat((averageTable6).toFixed(3)))
 
 						monthInterval.push(day)
 						monthInterval.sort()
 
 						if (monthInterval.length == days.length) {
+
 							items = {
-								table1: averageProductionTable1,
-								table2: averageProductionTable2,
-								table3: averageProductionTable3,
-								table4: averageProductionTable4,
-								table5: averageProductionTable5,
-								table6: averageProductionTable6,
+								table,
+								table1,
+								table2,
+								table3,
+								table4,
+								table5,
+								table6,
 								interval: monthInterval,
 								monthDay: dateToRequest.month + "/" + dateToRequest.year,
 								month: dateToRequest.month,
@@ -470,7 +516,9 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 					})
 					.catch((err) => {
 
-						let items = {
+						items = {
+							err,
+							table,
 							table1: [0],
 							table2: [0],
 							table3: [0],
@@ -488,88 +536,9 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 
 					})
 			})
-		}
 
-		else resolve("Not existent table " + table + ".")
-
-	})
-
-}
-
-IreceProductionServices.readForOneYear = async (date) => {
-
-	let items = []
-	let yearInterval = []
-	let averageProductionTable1 = []
-	let averageProductionTable2 = []
-	let averageProductionTable3 = []
-	let averageProductionTable4 = []
-	let averageProductionTable5 = []
-	let averageProductionTable6 = []
-
-	let dateToRequest = {
-		year:
-			date[0] +
-			date[1] +
-			date[2] +
-			date[3]
-	}
-
-	let months = []
-
-	for (let i = 1; i <= 12; i++) {
-		months.push((i < 10) ? "0" + i : i)
-	}
-
-	return new Promise((resolve, reject) => {
-		months.map(month => {
-			IreceProductionServices.readForOneMonth(dateToRequest.year + month + 10)
-				.then((response) => {
-
-					let effectiveDays = response.interval.length
-
-					let totalProductionTable1 = (response.table1.length) ? response.table1.reduce((acc, cur) => acc + cur) : 0
-					let totalProductionTable2 = (response.table2.length) ? response.table2.reduce((acc, cur) => acc + cur) : 0
-					let totalProductionTable3 = (response.table3.length) ? response.table3.reduce((acc, cur) => acc + cur) : 0
-					let totalProductionTable4 = (response.table4.length) ? response.table4.reduce((acc, cur) => acc + cur) : 0
-					let totalProductionTable5 = (response.table5.length) ? response.table5.reduce((acc, cur) => acc + cur) : 0
-					let totalProductionTable6 = (response.table6.length) ? response.table6.reduce((acc, cur) => acc + cur) : 0
-
-					averageProductionTable1[month - 1] = parseFloat((totalProductionTable1 / effectiveDays).toFixed(3)) || 0
-					averageProductionTable2[month - 1] = parseFloat((totalProductionTable2 / effectiveDays).toFixed(3)) || 0
-					averageProductionTable3[month - 1] = parseFloat((totalProductionTable3 / effectiveDays).toFixed(3)) || 0
-					averageProductionTable4[month - 1] = parseFloat((totalProductionTable4 / effectiveDays).toFixed(3)) || 0
-					averageProductionTable5[month - 1] = parseFloat((totalProductionTable5 / effectiveDays).toFixed(3)) || 0
-					averageProductionTable6[month - 1] = parseFloat((totalProductionTable6 / effectiveDays).toFixed(3)) || 0
-
-					yearInterval.push(month)
-					yearInterval.sort()
-
-					if (yearInterval.length == months.length) {
-						items = {
-							table1: averageProductionTable1,
-							table2: averageProductionTable2,
-							table3: averageProductionTable3,
-							table4: averageProductionTable4,
-							table5: averageProductionTable5,
-							table6: averageProductionTable6,
-							interval: yearInterval,
-							year: dateToRequest.year,
-							period: 'year'
-						}
-
-						resolve(items)
-					}
-
-				})
-				.catch((err) => {
-					console.log(err)
-				})
 		})
-
-	})
-
-
+	}
 
 }
 

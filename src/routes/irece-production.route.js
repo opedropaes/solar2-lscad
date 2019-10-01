@@ -1,7 +1,7 @@
 const server = require('../config/server').server
 const service = require('../model/readIreceProduction').IreceProductionServices
 
-server.get('/irece/producao/:table/:date/:period', (req, res, next) => {
+server.get('/irece/producao/mesas/:table/:date/:period', (req, res, next) => {
     
     if (req.params.period == 'day') {
 		service.readForOneDay(req.params.date, req.params.table)
