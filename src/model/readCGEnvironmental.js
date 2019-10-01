@@ -521,7 +521,8 @@ CampoGrandeEnvironmentalServices.readForOneMonth = async (date) => {
 							averagesPM2,
 							month: dateToRequest.month,
 							year: dateToRequest.year,
-							monthDay: dateToRequest.month + '/' + dateToRequest.year
+							monthDay: dateToRequest.month + '/' + dateToRequest.year,
+							period: "month"
 						}
 
 						resolve(items)
@@ -550,7 +551,8 @@ CampoGrandeEnvironmentalServices.readForOneMonth = async (date) => {
 						averagesPM2: [0],
 						month: dateToRequest.month,
 						year: dateToRequest.year,
-						monthDay: dateToRequest.month + '/' + dateToRequest.year
+						monthDay: dateToRequest.month + '/' + dateToRequest.year,
+						period: "month"
 					}
 
 					resolve(items)
