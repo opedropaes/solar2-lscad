@@ -315,6 +315,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				let averagePM2 = totalPM2 / ((pm2Exists) ? pm2.length : 1)
 
 				let items = {
+					period: "day",
 					interval: (response[0].length) ? response[0] : [0],
 					PM1Particulates: (response[1].length) ? response[1] : [0],
 					averagePM1: parseFloat((averagePM1).toFixed(2)),
@@ -362,6 +363,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				console.log(err)
 
 				let items = {
+					period: "day",
 					interval: [0],
 					PM1Particulates: [0],
 					averagePM1: 0,
