@@ -128,14 +128,83 @@ IreceEnvironmentalServices.readForOneDay = async (date) => {
 		requireAWSData(params)
 		.then((response) => {
 
+			//irradiation
+
+			let irradiation = response[7]
+			let irradiationExists = irradiation.length
+
+			let totalIrradiation = (irradiationExists) ? irradiation.reduce((acc, cur) => acc + parseFloat(cur)) : 0
+			let averageIrradiation = (irradiationExists) ? totalIrradiation / irradiation.length : 0
+
+			let higherIrradiation = 0
+
+			irradiation.map(item => {
+				if (item > higherIrradiation)
+					higherIrradiation = item
+			})
+
+			if (higherIrradiation === 0) 
+				higherIrradiation = undefined
+
+			//temperature
+
+			let temperature = response[4]
+			let temperatureExists = (!isNaN(temperature.length))
+
+			let totalTemperature = 0
+			let higherTemperature = 0
+			let lowerTemperature = 100
+
+			temperature.map(item => {
+				totalTemperature += parseFloat(item)
+				if (item < lowerTemperature && item != 0)
+					lowerTemperature = item
+				if (item > higherTemperature)
+					higherTemperature = item
+			})
+
+			if (lowerTemperature === 100)
+				lowerTemperature = undefined
+			
+			if (higherTemperature === 0)
+				higherTemperature = undefined
+
+			let averageTemperature = totalTemperature / ((temperatureExists) ? temperature.length : 1)
+
+			//rainfall
+
+			let rainfall = response[2]
+			let accumulateRainfall = 0
+
+			for (let i = 0; i < rainfall.length; i++) {
+				if (rainfall[i] != rainfall[i + 1]) {
+					accumulateRainfall += parseFloat(rainfall[i] / 1000)
+				}
+			}
+
+			//wind speed
+
+			let windSpeed = response[3]
+			let windSpeedExists = windSpeed.length
+
+			let totalWindSpeed = (windSpeedExists) ? windSpeed.reduce((acc, cur) => acc + parseFloat(cur)) : 0
+			let averageWindSpeed = (windSpeedExists) ? totalWindSpeed / windSpeed.length : 0
+
 			let items = {
 				humidity: response[1],
+				accumulateRainfall: parseFloat((accumulateRainfall).toFixed(2)),
 				rainfall: response[2],
 				windSpeed: response[3],
+				averageWindSpeed: parseFloat((averageWindSpeed).toFixed(2)),
 				temperature: response[4],
 				atmPressure: response[5],
 				solarRadiation: response[6],
 				averageRadiation: response[7],
+				averageIrradiation: parseFloat((averageIrradiation).toFixed(2)),
+				higherIrradiation: parseFloat((higherIrradiation).toFixed(3)),
+				averageTemperature: parseFloat((averageTemperature).toFixed(1)),
+				higherTemperature: parseFloat((higherTemperature).toFixed(1)),
+				lowerTemperature: parseFloat((lowerTemperature).toFixed(1)),
 				interval: response[0],
 				day: dateToRequest.day,
                 month: dateToRequest.month,
@@ -150,18 +219,27 @@ IreceEnvironmentalServices.readForOneDay = async (date) => {
 		.catch((err) => {
 
 			let items = {
+				err,
 				humidity: [0],
+				accumulateRainfall: 0,
 				rainfall: [0],
 				windSpeed: [0],
+				averageWindSpeed: 0,
 				temperature: [0],
 				atmPressure: [0],
 				solarRadiation: [0],
 				averageRadiation: [0],
+				averageIrradiation: 0,
+				higherIrradiation: 0,
+				averageTemperature: 0,
+				higherTemperature: 0,
+				lowerTemperature: 0,
 				interval: [0],
 				day: dateToRequest.day,
                 month: dateToRequest.month,
 				year: dateToRequest.year,
 				monthDay: dateToRequest.day + '/' + dateToRequest.month + '/' + dateToRequest.year,
+				period: 'day'
 			}
 
 			resolve(items)
@@ -176,12 +254,13 @@ IreceEnvironmentalServices.readForOneMonth = async (date) => {
 
 	let items = {}
 	let monthInterval = []
-	let averageProductionTable1 = []
-	let averageProductionTable2 = []
-	let averageProductionTable3 = []
-	let averageProductionTable4 = []
-	let averageProductionTable5 = []
-	let averageProductionTable6 = []
+	let averageIrradiations = []
+	let higherIrradiations = []
+	let averageTemperatures = []
+	let higherTemperatures = []
+	let lowerTemperatures = []
+	let accumulateRainfall = []
+	let averageWindSpeeds = []
 
 	let dateToRequest = {
 		month:
@@ -206,60 +285,55 @@ IreceEnvironmentalServices.readForOneMonth = async (date) => {
 			IreceEnvironmentalServices.readForOneDay(dateToRequest.year + dateToRequest.month + day)
 				.then((response) => {
 
-					let effectiveHours = response.interval.length / 4
-
-					let totalProductionTable1 = (response.table1.length) ? response.table1.reduce((acc, cur) => acc + cur) : 0
-					let totalProductionTable2 = (response.table2.length) ? response.table2.reduce((acc, cur) => acc + cur) : 0
-					let totalProductionTable3 = (response.table3.length) ? response.table3.reduce((acc, cur) => acc + cur) : 0
-					let totalProductionTable4 = (response.table4.length) ? response.table4.reduce((acc, cur) => acc + cur) : 0
-					let totalProductionTable5 = (response.table5.length) ? response.table5.reduce((acc, cur) => acc + cur) : 0
-					let totalProductionTable6 = (response.table6.length) ? response.table6.reduce((acc, cur) => acc + cur) : 0
-
-					averageProductionTable1[day - 1] = parseFloat((totalProductionTable1 / effectiveHours).toFixed(3)) || 0
-					averageProductionTable2[day - 1] = parseFloat((totalProductionTable2 / effectiveHours).toFixed(3)) || 0
-					averageProductionTable3[day - 1] = parseFloat((totalProductionTable3 / effectiveHours).toFixed(3)) || 0
-					averageProductionTable4[day - 1] = parseFloat((totalProductionTable4 / effectiveHours).toFixed(3)) || 0
-					averageProductionTable5[day - 1] = parseFloat((totalProductionTable5 / effectiveHours).toFixed(3)) || 0
-					averageProductionTable6[day - 1] = parseFloat((totalProductionTable6 / effectiveHours).toFixed(3)) || 0
-
 					monthInterval.push(day)
 					monthInterval.sort()
 
-					if (monthInterval.length == days.length) {
+					averageIrradiations[day - 1] = response.averageIrradiation
+					higherIrradiations[day - 1] = response.higherIrradiation
+					averageTemperatures[day - 1] = response.averageIrradiation
+					higherTemperatures[day - 1] = response.higherTemperature
+					lowerTemperatures[day - 1] = response.lowerTemperature
+					accumulateRainfall[day - 1] = response.accumulateRainfall
+					averageWindSpeeds[day - 1] = response.averageWindSpeed
+
+					if (monthInterval.length === days.length) {
+
 						items = {
-							table1: averageProductionTable1,
-							table2: averageProductionTable2,
-							table3: averageProductionTable3,
-							table4: averageProductionTable4,
-							table5: averageProductionTable5,
-							table6: averageProductionTable6,
-							interval: monthInterval,
-							monthDay: dateToRequest.month + "/" + dateToRequest.year,
+							monthInterval,
+							averageIrradiations,
+							higherIrradiations,
+							averageTemperatures,
+							higherTemperatures,
+							lowerTemperatures,
+							accumulateRainfall,
+							averageWindSpeeds,
+							period: 'month',
 							month: dateToRequest.month,
 							year: dateToRequest.year,
-							period: 'month'
+							monthDay: dateToRequest.month + '/' + dateToRequest.year,
 						}
-
 						resolve(items)
-					}
 
+					}
+					
 				})
 				.catch((err) => {
 
-					let items = {
-						table1: [0],
-						table2: [0],
-						table3: [0],
-						table4: [0],
-						table5: [0],
-						table6: [0],
-						interval: monthInterval,
-						monthDay: dateToRequest.month + "/" + dateToRequest.year,
+					items = {
+						err,
+						monthInterval,
+						averageIrradiations,
+						higherIrradiations,
+						averageTemperatures,
+						higherTemperatures,
+						lowerTemperatures,
+						accumulateRainfall,
+						averageWindSpeeds,
+						period: 'month',
 						month: dateToRequest.month,
 						year: dateToRequest.year,
-						period: 'month'
+						monthDay: dateToRequest.month + '/' + dateToRequest.year,
 					}
-					
 					resolve(items)
 
 				})

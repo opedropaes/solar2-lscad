@@ -268,7 +268,6 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				//Umidade
 
 				let humidity = response[24]
-				let humidityExists = (!isNaN(humidity))
 				let totalHumidity = 0
 
 				for (let i = 0; i < humidity.length; i++) {
