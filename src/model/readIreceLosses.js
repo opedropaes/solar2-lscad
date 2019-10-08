@@ -10,7 +10,6 @@ const requireAWSData = async (table, params) => {
         let i = 0
         let items = []
         let interval = []
-        let sortedItems = []
         let completeDates = []
         let loss = []
         let lossPercentage = []
@@ -113,10 +112,7 @@ const requireAWSData = async (table, params) => {
     })
 }
 
-IreceLossesServices = {}
-
-IreceLossesServices.readForOneMonth = async (table, date) => {
-    
+const readLosses = async (table, date) => {
     let dateToRequest = {
         day:
             date[6] +
@@ -130,23 +126,23 @@ IreceLossesServices.readForOneMonth = async (table, date) => {
             date[2] +
             date[3]
     }
-    
+
     return new Promise((resolve, reject) => {
 
         let params = tableDefiner.defineTable
-        (
-            'irece',
-            'losses',
-            table,
-            dateToRequest.day,
-            dateToRequest.month,
-            dateToRequest.year,
-            null
-        )
+            (
+                'irece',
+                'losses',
+                table,
+                dateToRequest.day,
+                dateToRequest.month,
+                dateToRequest.year,
+                null
+            )
 
         requireAWSData(table, params)
             .then((response) => {
-                
+
                 let items = {
                     table,
                     period: "month",
@@ -172,6 +168,146 @@ IreceLossesServices.readForOneMonth = async (table, date) => {
             })
 
     })
+}
+
+IreceLossesServices = {}
+
+IreceLossesServices.readForOneMonth = async (table, date) => {
+    if(table === "total") {
+        return new Promise((resolve, reject) => {
+            let tables = [1, 2, 3, 4, 5]
+            let tablesRead = 0
+            let lossesPerTable = []
+            let lossesRanking = []
+            let totalLosses = []
+            let auxiliar = []
+            let allRealProduction = []
+            let allLossesPercentage = []
+
+            tables.map(thisTable => {
+                readLosses(thisTable, date)
+                    .then(response => {
+
+                        tablesRead++
+                        lossesPerTable[response.table - 1] = response.comparation[1]
+                        auxiliar[response.table - 1] = response.comparation[1]
+
+                        // Soma todas as perdas por dia (em kW)
+                        let lossExists = response.loss.length
+                        if (lossExists) {
+                            response.loss.map(loss => {
+                                let originalPosition = response.loss.indexOf(loss)
+                                if (totalLosses[originalPosition] != null) {
+                                    totalLosses[originalPosition] += loss
+                                } else {
+                                    totalLosses[originalPosition] = loss
+                                }
+                            })
+                        }
+
+                        // Aglomera as produções reais de cada mesa
+                        allRealProduction[response.table - 1] = response.realProd
+                        
+                        // Aglomera as perdas em porcentagem de cada mesa
+                        allLossesPercentage[response.table - 1] = response.lossPercentage
+
+                        if (tablesRead === tables.length) {
+
+                            // Define ranking de mesas que mais tiveram perdas (em %)
+                            let sortedLosses = auxiliar
+                            sortedLosses.sort((a, b) => b - a)
+
+                            lossesPerTable.map(loss => {
+                                let originalTableAsPositionToRank = lossesPerTable.indexOf(loss)
+                                let descendingRankedPosition = sortedLosses.indexOf(loss)
+                               
+                                lossesRanking[descendingRankedPosition] = ({
+                                    table: originalTableAsPositionToRank + 1,
+                                    loss
+                                })
+                            
+                            })
+
+                            let realProductionTable1 = allRealProduction[0]
+                            let realProductionTable2 = allRealProduction[1]
+                            let realProductionTable3 = allRealProduction[2]
+                            let realProductionTable4 = allRealProduction[3]
+                            let realProductionTable5 = allRealProduction[4]
+
+                            let lossPercentageTable1 = allLossesPercentage[0]
+                            let lossPercentageTable2 = allLossesPercentage[1]
+                            let lossPercentageTable3 = allLossesPercentage[2]
+                            let lossPercentageTable4 = allLossesPercentage[3]
+                            let lossPercentageTable5 = allLossesPercentage[4]
+
+                            // Formata a soma das perdas (em kW)
+                            totalLosses.map(loss => {
+                                totalLosses[totalLosses.indexOf(loss)] = parseFloat((loss).toFixed(3))
+                            })
+
+                            let items = {
+                                table: "total",
+                                totalLosses,
+                                lossesRanking,
+                                realProductionTable1,
+                                realProductionTable2,
+                                realProductionTable3,
+                                realProductionTable4,
+                                realProductionTable5,
+                                lossPercentageTable1,
+                                lossPercentageTable2,
+                                lossPercentageTable3,
+                                lossPercentageTable4,
+                                lossPercentageTable5,
+                                interval: response.interval,
+                                period: "month",
+                                year: response.year,
+                                month: response.month
+                            }
+
+                            resolve(items)
+                        }
+
+                    })
+                    .catch(err => {
+                        let items = {
+                            err,
+                            table: "total",
+                            totalLosses: [0],
+                            lossesRanking: [0],
+                            realProductionTable1: [0],
+                            realProductionTable2: [0],
+                            realProductionTable3: [0],
+                            realProductionTable4: [0],
+                            realProductionTable5: [0],
+                            lossPercentageTable1: [0],
+                            lossPercentageTable2: [0],
+                            lossPercentageTable3: [0],
+                            lossPercentageTable4: [0],
+                            lossPercentageTable5: [0],
+                            interval: [0],
+                            period: "month",
+                            year: undefined,
+                            month: undefined
+                        }
+                    })
+            })
+        })
+
+
+    } else if (table > 0 && table < 6) {
+        return new Promise((resolve, reject) => {
+            readLosses(table, date)
+                .then(response => {
+                    resolve(response)
+                })
+                .catch(err => {
+                    reject(err)
+                })
+        })
+        
+
+    } else return "This table does not exist."
 }
 
 module.exports = { IreceLossesServices }
