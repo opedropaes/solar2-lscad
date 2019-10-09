@@ -183,6 +183,8 @@ IreceLossesServices.readForOneMonth = async (table, date) => {
             let auxiliar = []
             let allRealProduction = []
             let allLossesPercentage = []
+            let technologies = ['a-Si - Baixa tensão', 'a-Si - Alta tensão', 'CdTe', 'CIGS', 'p-Si']
+            let productionAverages = []
 
             tables.map(thisTable => {
                 readLosses(thisTable, date)
@@ -205,11 +207,19 @@ IreceLossesServices.readForOneMonth = async (table, date) => {
                             })
                         }
 
+                        
                         // Aglomera as produções reais de cada mesa
                         allRealProduction[response.table - 1] = response.realProd
                         
                         // Aglomera as perdas em porcentagem de cada mesa
                         allLossesPercentage[response.table - 1] = response.lossPercentage
+                        
+                        // Calcula a média de producao real por mesa
+                        let totalProduction = allRealProduction[response.table - 1].reduce((acc, cur) => {
+                            return acc + parseFloat(cur)
+                        })
+
+                        productionAverages[response.table - 1] = parseFloat((totalProduction / allRealProduction[response.table - 1].length).toFixed(3))
 
                         if (tablesRead === tables.length) {
 
@@ -218,12 +228,15 @@ IreceLossesServices.readForOneMonth = async (table, date) => {
                             sortedLosses.sort((a, b) => b - a)
 
                             lossesPerTable.map(loss => {
+
                                 let originalTableAsPositionToRank = lossesPerTable.indexOf(loss)
                                 let descendingRankedPosition = sortedLosses.indexOf(loss)
                                
                                 lossesRanking[descendingRankedPosition] = ({
                                     table: originalTableAsPositionToRank + 1,
-                                    loss
+                                    loss,
+                                    averageProduction: productionAverages[originalTableAsPositionToRank],
+                                    technology: technologies[originalTableAsPositionToRank]
                                 })
                             
                             })
