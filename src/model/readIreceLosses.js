@@ -262,7 +262,8 @@ IreceLossesServices.readForOneMonth = async (table, date) => {
                                 interval: response.interval,
                                 period: "month",
                                 year: response.year,
-                                month: response.month
+                                month: response.month,
+                                yearMonth: `${response.month}/${response.year}` 
                             }
 
                             resolve(items)
