@@ -290,7 +290,7 @@ IreceEnvironmentalServices.readForOneMonth = async (date) => {
 
 					averageIrradiations[day - 1] = response.averageIrradiation
 					higherIrradiations[day - 1] = response.higherIrradiation
-					averageTemperatures[day - 1] = response.averageIrradiation
+					averageTemperatures[day - 1] = response.averageTemperature
 					higherTemperatures[day - 1] = response.higherTemperature
 					lowerTemperatures[day - 1] = response.lowerTemperature
 					accumulateRainfall[day - 1] = response.accumulateRainfall
@@ -340,8 +340,6 @@ IreceEnvironmentalServices.readForOneMonth = async (date) => {
 		})
 
 	})
-
-
 
 }
 

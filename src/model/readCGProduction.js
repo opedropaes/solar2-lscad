@@ -332,7 +332,7 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 					let performanceRatioIsNumber = (typeof response.performanceRatio == "number")
 					let performanceRatio = (performanceRatioIsNumber) ? response.performanceRatio : 0
 
-					averageProduction[day - 1] = parseFloat((totalAverage / 4).toFixed(3)) || 0
+					averageProduction[day - 1] = (dateToRequest.year === "2018" || (dateToRequest.year === "2019" && dateToRequest.month < 7)) ? parseFloat((totalAverage).toFixed(3)) || 0 : parseFloat((totalAverage / 4).toFixed(3)) || 0
 					averageCapacityFactor[day - 1] = parseFloat((totalCapacityFactor / effectiveHours).toFixed(3)) || 0
 					totalProductions[day - 1] = totalProduction
 					performances[day - 1] = performanceRatio
