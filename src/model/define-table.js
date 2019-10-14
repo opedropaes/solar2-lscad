@@ -1,7 +1,7 @@
 const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 
 	day = (day > 10) ? (typeof day != "string") ? JSON.stringify(day) : day : ('0' + day).slice(-2)
-	month = (month > 10) ? JSON.stringify(month) : ('0' + month).slice(-2)
+	month = (month > 10) ? month : ('0' + month).slice(-2)
 	year = (typeof year != "string") ? JSON.stringify(year) : year
 
 	let params = {}

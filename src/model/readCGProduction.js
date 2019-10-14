@@ -11,7 +11,8 @@ let usedYear = now.getFullYear()
 let usedMonth = now.getMonth() + 1
 let usedDay = now.getDate()
 
-const requireAWSData = async (params) => {
+const requireAWSData = async (params, requestedDate) => {
+
 	return new Promise((resolve, reject) => {
 
 		let items = []
@@ -71,10 +72,11 @@ const requireAWSData = async (params) => {
 
 				interval.sort()
 				completeInterval.sort()
-
+				
 				for (let hour of interval) {
 					for (let item of items) {
 						if (hour == item.hourMin) {
+
 							if (usedMonth <= 6 && usedYear <= 2019 || usedYear == 2018 || (usedYear == 2019 && usedMonth == 7 && usedDay >= 15)) {
 								sortedItems.push({
 									pac: parseFloat((item.pac * 4).toFixed(3)),
@@ -133,7 +135,7 @@ const requireAWSData = async (params) => {
 const dataAverage = (data, dates) => {
 
 	try {
-		let minutesSum = 0
+		let productionSumsPerMinute = 0
 		let irradiationMinuteSum = 0
 		let qtd = 0
 		let irradiationCounter = 0
@@ -157,7 +159,7 @@ const dataAverage = (data, dates) => {
 			
 			let minute = dates[i][3] + dates[i][4]
 
-			minutesSum += parseFloat(data[i].pac)
+			productionSumsPerMinute += parseFloat(data[i].pac)
 			qtd++
 
 			irradiationMinuteSum += parseFloat(data[i].irr)
@@ -165,8 +167,8 @@ const dataAverage = (data, dates) => {
 
 			if (minute % 15 == 0) {
 
-				capacityFactor.push(parseFloat(((minutesSum / qtd) / 8.2).toFixed(3)))
-				averages.push(parseFloat(parseFloat(minutesSum / qtd).toFixed(3)))
+				capacityFactor.push(parseFloat(((productionSumsPerMinute / qtd) / 8.2).toFixed(3)))
+				averages.push(parseFloat(parseFloat(productionSumsPerMinute / qtd).toFixed(3)))
 				alternateCurrent.push(data[i].iac)
 				continuousCurrent.push(data[i].idc)
 				alternateTension.push(data[i].vac)
@@ -176,7 +178,7 @@ const dataAverage = (data, dates) => {
 				irradiationAverage.push(parseFloat((irradiationMinuteSum / irradiationCounter).toFixed(2)))
 
 				qtd = 0
-				minutesSum = 0
+				productionSumsPerMinute = 0
 				irradiationCounter = 0
 				irradiationMinuteSum = 0
 
@@ -235,7 +237,13 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 			null
 		)
 
-		requireAWSData(params)
+		let requestedDate = {
+			day: dateToRequest.day,
+			month: dateToRequest.month,
+			year: dateToRequest.year
+		}
+
+		requireAWSData(params, requestedDate)
 			.then((response) => {
 
 				let totalIrradiation = (response[7].length) ? response[7].reduce((acc, cur) => acc + parseFloat(cur)) : 0
@@ -333,6 +341,9 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 					let performanceRatio = (performanceRatioIsNumber) ? response.performanceRatio : 0
 
 					averageProduction[day - 1] = (dateToRequest.year === "2018" || (dateToRequest.year === "2019" && dateToRequest.month < 7)) ? parseFloat((totalAverage).toFixed(3)) || 0 : parseFloat((totalAverage / 4).toFixed(3)) || 0
+					
+					averageProduction[day - 1] = (averageProduction[day - 1] > 65) ? parseFloat((totalAverage / 2).toFixed(3)) || 0 : averageProduction[day - 1]
+					
 					averageCapacityFactor[day - 1] = parseFloat((totalCapacityFactor / effectiveHours).toFixed(3)) || 0
 					totalProductions[day - 1] = totalProduction
 					performances[day - 1] = performanceRatio
@@ -371,6 +382,7 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 				.catch((err) => {
 
 					let items = {
+						err,
 						averages: [0],
 						capacityFactor: [0],
 						productions: [0],
