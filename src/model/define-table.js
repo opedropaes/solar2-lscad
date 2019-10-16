@@ -64,7 +64,7 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 			params = {
 				TableName: "ambientais_ufms",
 				KeyConditionExpression: "dia_mes_ano = :inicio",
-				ProjectionExpression: "dia_mes_ano, hora_minuto, massaPM1, massaPM10, massaPM2, massaPM4, numPM1, numPM10, numPM2, numPM4, tamanho_medio, #temperature, tipo, vento_dir, vento_vel, hum",
+				ProjectionExpression: "dia_mes_ano, hora_minuto, massaPM1, massaPM10, massaPM2, massaPM4, numPM1, numPM10, numPM2, numPM4, tamanho_medio, #temperature, tipo, vento_dir, vento_vel, hum, irr",
 				ExpressionAttributeValues: {
 					":inicio": parseInt(year + month + day)
 				},
