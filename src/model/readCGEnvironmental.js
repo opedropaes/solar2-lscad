@@ -3,6 +3,7 @@ const dateFormater = require('./format-date')
 const AWSConfig = require('../config/config')
 const irradiationReader = require('./readCGProduction').CampoGrandeProductionServices
 const daysInMonthDefiner = require('../utils/daysInMonthDefiner')
+const windDirectionConverter = require('./wind-direction-converter')
 
 const docClient = AWSConfig.docClient;
 
@@ -46,7 +47,7 @@ const requireAWSData = async (params) => {
 						let numPM4 = item.numPM4
 						let numPM10 = item.numPM10
 						let temperature = item.temp
-						let windDir = item.vento_dir
+						let windDir = windDirectionConverter.convert(item.vento_dir)
 						let massaPM1 = item.massaPM1
 						let massaPM2 = item.massaPM2
 						let massaPM4 = item.massaPM4
