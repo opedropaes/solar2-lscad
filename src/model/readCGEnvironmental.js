@@ -28,7 +28,6 @@ const requireAWSData = async (params) => {
 		let irradiations = []
 		let irradiationInterval = []
 
-
 		docClient.query(params, (err, data) => {
 			if (err) {
 				reject("Unable to scan table. Error JSON: " + JSON.stringify(err, null, 2))
@@ -111,7 +110,7 @@ const requireAWSData = async (params) => {
 						}
 					}
 				}
-
+				
 			}
 
 			let datesToGetQuarter = {
@@ -355,6 +354,49 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 
 				let averagePM2 = totalPM2 / ((pm2Exists) ? pm2.length : 1)
 
+				// Direção do vento
+
+				let windDirections = (response[12].length) ? response[12] : [0]
+
+				let north = 0
+				let south = 0
+				let east = 0
+				let west = 0
+				let northWest = 0
+				let northEast = 0
+				let southWest = 0
+				let southEast = 0
+
+				windDirections.map(direction => {
+					if (direction === "N") 
+						north++
+					else if (direction === "NE")
+						northEast++
+					else if (direction === "E")
+						east++
+					else if (direction === "SE")
+						southEast++
+					else if (direction === "S")
+						south++
+					else if (direction === "SW")
+						southWest++
+					else if (direction === "W")
+						west++
+					else if (direction === "NW")
+						northWest++	
+				})
+
+				let eachWindDirectionPercentage = {
+					north: parseFloat(((north / windDirections.length) * 100).toFixed(2)),
+					northEast: parseFloat(((northEast / windDirections.length) * 100).toFixed(2)),
+					east: parseFloat(((east / windDirections.length) * 100).toFixed(2)),
+					southEast: parseFloat(((southEast / windDirections.length) * 100).toFixed(2)),
+					south: parseFloat(((south / windDirections.length) * 100).toFixed(2)),
+					southWest: parseFloat(((southWest / windDirections.length) * 100).toFixed(2)),
+					west: parseFloat(((west / windDirections.length) * 100).toFixed(2)),
+					northWest: parseFloat(((northWest / windDirections.length) * 100).toFixed(2)),
+				}
+
 				let items = {
 					period: "day",
 					interval: (response[0].length) ? response[0] : [0],
@@ -379,8 +421,8 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					averageTemperature: parseFloat((averageTemperature).toFixed(2)),
 					lowerTemperature,
 					higherTemperature,
-					types: (response[11].length) ? response[11] : [0],
-					windDirections: (response[12].length) ? response[12] : [0],
+					windDirections,
+					eachWindDirectionPercentage,
 					windSpeeds: (response[13].length) ? response[13] : [0],
 					averageWindSpeed,
 					PM1NumbersQuarters: (response[14].length) ? response[14] : [0],
@@ -431,6 +473,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					higherTemperature: 0,
 					types: [0],
 					windDirections: [0],
+					eachWindDirectionPercentage: [0],
 					windSpeeds: [0],
 					averageWindSpeed: 0,
 					PM1NumbersQuarters: [0],
