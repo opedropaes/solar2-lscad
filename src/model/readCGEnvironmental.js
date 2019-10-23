@@ -268,7 +268,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				let irradiations = (response[25].length) ? response[25] : [0]
 				let irradiationInterval = (response[26].length) ? response[26] : [0]
 				let effectiveIrradiations = irradiations.filter(irradiation => irradiation > 0)
-				let accumulateIrradiation = effectiveIrradiations.reduce((acc, cur) => acc + parseFloat(cur))
+				let accumulateIrradiation = (effectiveIrradiations.length) ? (effectiveIrradiations.reduce((acc, cur) => acc + parseFloat(cur))) : 0
 				let higherIrradiation = 0
 
 				effectiveIrradiations.map(irradiation => {
@@ -543,17 +543,17 @@ CampoGrandeEnvironmentalServices.readForOneMonth = async (date) => {
 					monthInterval.push(day)
 					monthInterval.sort()
 
-					averageIrradiations[day - 1] = response[0].averageIrradiation
-					higherIrradiations[day - 1] = response[0].higherIrradiation
-					averageTemperatures[day - 1] = response[1].averageTemperature
-					higherTemperatures[day - 1] = response[1].higherTemperature
-					lowerTemperatures[day - 1] = response[1].lowerTemperature
-					accumulateHumidities[day - 1] = response[1].accumulateHumidity
-					averageWindSpeeds[day - 1] = response[1].averageWindSpeed
-					accumulatePM1[day - 1] = response[1].totalPM1
-					averagesPM1[day - 1] = response[1].averagePM1
-					accumulatePM2[day - 1] = response[1].totalPM2
-					averagesPM2[day - 1] = response[1].averagePM2
+					averageIrradiations[day - 1] = response.irradiationAverage
+					higherIrradiations[day - 1] = response.higherIrradiation
+					averageTemperatures[day - 1] = response.averageTemperature
+					higherTemperatures[day - 1] = response.higherTemperature
+					lowerTemperatures[day - 1] = response.lowerTemperature
+					accumulateHumidities[day - 1] = response.accumulateHumidity
+					averageWindSpeeds[day - 1] = response.averageWindSpeed
+					accumulatePM1[day - 1] = response.totalPM1
+					averagesPM1[day - 1] = response.averagePM1
+					accumulatePM2[day - 1] = response.totalPM2
+					averagesPM2[day - 1] = response.averagePM2
 
 					if (monthInterval.length === days.length) {
 
@@ -613,5 +613,214 @@ CampoGrandeEnvironmentalServices.readForOneMonth = async (date) => {
 	})
 
 }
+
+const readForOneYear = async (date) => {
+	
+	let items = {}
+	let yearInterval = []
+	let averageIrradiations = []
+	let higherIrradiations = []
+	let averageTemperatures = []
+	let higherTemperatures = []
+	let lowerTemperatures = []
+	let accumulateRainfall = []
+	let averageWindSpeeds = []
+	let accumulatePM1 = []
+	let averagesPM1 = []
+	let accumulatePM2 = []
+	let averagesPM2 = []
+
+	let dateToRequest = {
+		month:
+			date[4] +
+			date[5],
+		year:
+			date[0] +
+			date[1] +
+			date[2] +
+			date[3]
+	}
+
+	let months = []
+
+	for (let i = 1; i <= 12; i++) {
+		months.push((i < 10) ? "0" + i : i)
+	}
+
+	return new Promise((resolve, reject) => {
+		months.map(month => {
+			CampoGrandeEnvironmentalServices.readForOneMonth(dateToRequest.year + month)
+				.then(response => {
+
+					yearInterval.push(month)
+					yearInterval.sort()
+
+					// Irradiacao
+
+					let effectiveIrradiations = response.averageIrradiations.filter(irradiation => typeof irradiation === "number")
+					let irradiationAveragesSum = (effectiveIrradiations.length) ? effectiveIrradiations.reduce((acc, cur) => acc + parseFloat(cur)) : 0
+					let averageIrradiationThisMonth = irradiationAveragesSum / effectiveIrradiations.length
+					averageIrradiations[month - 1] = averageIrradiationThisMonth
+
+					// Maiores irradiacoes
+
+					let higherIrradiation = 0
+					for (let irradiation of response.higherIrradiations) {
+						if (irradiation > higherIrradiation) 
+							higherIrradiation = irradiation
+					}
+
+					let higherIrradiationDay = "null"
+
+					if (higherIrradiation === 0) 
+						higherIrradiation == "null"
+					else 
+						higherIrradiationDay = response.higherIrradiations.indexOf(higherIrradiation)
+					
+					higherIrradiations[month - 1] = { value: higherIrradiation, day: higherIrradiationDay }
+
+					// Temperaturas
+
+					let effectiveTemperatures = response.averageTemperatures.filter(temperature => typeof temperature === "number")
+					let averageTemperaturesSum = (effectiveTemperatures.length) ? effectiveTemperatures.reduce((acc, cur) => acc + parseFloat(cur)) : 0
+					let averageTemperatureThisMonth = averageTemperaturesSum / effectiveTemperatures.length
+					
+					averageTemperatures[month - 1] = averageTemperatureThisMonth
+
+					// Temperaturas mais altas
+
+					let higherTemperature = 0
+					for (let temperature of response.higherTemperatures) {
+						if (temperature > higherTemperature) 
+							higherTemperature = temperature
+					}
+
+					let higherTemperatureDay = "null"
+
+					if (higherTemperature === 0) 
+						higherTemperature == "null"
+					else 
+						higherTemperatureDay = response.higherTemperatures.indexOf(higherTemperature)
+					
+					higherTemperatures[month - 1] = { value: higherTemperature, day: higherTemperatureDay }
+
+					// Temperaturas mais baixas
+
+					let lowerTemperature = 0
+					for (let temperature of response.lowerTemperatures) {
+						if (temperature > lowerTemperature) 
+							lowerTemperature = temperature
+					}
+
+					let lowerTemperatureDay = "null"
+
+					if (lowerTemperature === 0) 
+						lowerTemperature == "null"
+					else 
+						lowerTemperatureDay = response.lowerTemperatures.indexOf(lowerTemperature)
+					
+					lowerTemperatures[month - 1] = { value: lowerTemperature, day: lowerTemperatureDay }
+
+					// Precipitação acumulada
+
+					let effectiveRainfall = response.accumulateHumidities.filter(rainfall => typeof rainfall === "number")
+
+					accumulateRainfall[month - 1] = effectiveRainfall.reduce((acc, cur) => acc + parseFloat(cur))
+
+					// Velocidade media do vento
+
+					let effectiveWindSpeeds = response.averageWindSpeeds.filter(windSpeed => typeof windSpeed === "number")
+					let totalWindspeed = effectiveWindSpeeds.reduce((acc, cur) => acc + parseFloat(cur))
+					let windSpeedAverage = totalWindspeed / effectiveWindSpeeds.length
+
+					averageWindSpeeds[month - 1] = windSpeedAverage
+					
+					// Particulados PM1
+
+					let effectiveAccumulatePM1 = response.accumulatePM1.filter(pm1 => typeof pm1 === "number")
+					let effectiveAveragePM1 = response.averagesPM1.filter(pm1 => typeof pm1 === "number")
+					let totalAccumulatePM1 = effectiveAccumulatePM1.reduce((acc, cur) => acc + parseFloat(cur))
+					let totalAveragePM1 = effectiveAveragePM1.reduce((acc, cur) => acc + parseFloat(cur))
+					let averagePM1 = totalAveragePM1 / effectiveAveragePM1.length
+
+					accumulatePM1[month - 1] = totalAccumulatePM1
+					averagesPM1[month - 1] = averagePM1
+
+					// Particulados PM2
+
+					let effectiveAccumulatePM2 = response.accumulatePM2.filter(pm2 => typeof pm2 === "number")
+					let effectiveAveragePM2 = response.averagesPM2.filter(pm2 => typeof pm2 === "number")
+					let totalAccumulatePM2 = effectiveAccumulatePM2.reduce((acc, cur) => acc + parseFloat(cur))
+					let totalAveragePM2 = effectiveAveragePM2.reduce((acc, cur) => acc + parseFloat(cur))
+					let averagePM2 = totalAveragePM2 / effectiveAveragePM2.length
+
+					accumulatePM2[month - 1] = totalAccumulatePM2
+					averagesPM2[month - 1] = averagePM2
+
+					if (yearInterval.length === months.length) {
+
+						items = {
+							yearInterval,
+							averageIrradiations,
+							higherIrradiations,
+							averageTemperatures,
+							higherTemperatures,
+							lowerTemperatures,
+							accumulateRainfall,
+							averageWindSpeeds,
+							accumulatePM1,
+							averagesPM1,
+							accumulatePM2,
+							averagesPM2,
+							year: dateToRequest.year,
+							period: "year"
+						}
+
+						resolve(items)
+
+					}
+
+
+				})
+				.catch(err => {
+
+					console.log(err)
+
+					items = {
+						err,
+						monthInterval: [0],
+						averageIrradiations: [0],
+						higherIrradiations: [0],
+						averageTemperatures: [0],
+						higherTemperatures: [0],
+						lowerTemperatures: [0],
+						accumulateRainfall: [0],
+						averageWindSpeeds: [0],
+						accumulatePM1: [0],
+						averagesPM1: [0],
+						accumulatePM2: [0],
+						averagesPM2: [0],
+						year: dateToRequest.year,
+						period: "year"
+					}
+
+					resolve(items)
+
+				})
+		})
+	})
+}
+
+const getYearData = (date) => {
+	readForOneYear(date)
+		.then(response => {
+			console.log(response)
+		})
+		.catch(err => {
+			console.log(err)
+		})
+}
+
+// getYearData("20190101"); não funciona assim, vai ser preciso fazer manualmente mes a mes
 
 module.exports = { CampoGrandeEnvironmentalServices }
