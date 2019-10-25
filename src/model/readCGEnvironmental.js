@@ -565,4 +565,190 @@ CampoGrandeEnvironmentalServices.readForOneMonth = async (date) => {
 
 }
 
+const resolveMonthPromise = async (date) => {
+
+	console.log(date, "date")
+
+	CampoGrandeProductionServices.readForOneMonth(date)
+		.then(response => {
+
+			console.log(response)
+
+			// let year = response.year;
+			// let month = response.month;
+
+			// // Irradiacao
+			// // console.log(response.averageIrradiations)
+			// // let totalAverageIrradiation = response.averageIrradiations.reduce((acc, cur) => acc + parseFloat(cur));
+			// // let averageIrradiation = totalAverageIrradiation / response.averageIrradiations.length;
+			
+			// // let higherIrradiationValue = 0;
+			// // let higherIrradiationDay = 0;
+
+			// // response.higherIrradiations.map(item => {
+			// // 	if (item > higherIrradiationValue) {
+			// // 		higherIrradiationValue = item;
+			// // 		higherIrradiationDay = response.higherIrradiations.indexOf(item) + 1;
+			// // 	}
+					
+			// // });
+
+			// // Temperatura
+
+			// let totalTemperature = 0
+			// response.averageTemperatures.map(item => {
+			// 	if (typeof item === "number" && item >= 0) {
+			// 		totalTemperature += parseFloat(item);
+			// 	}
+			// });
+
+			// let averageTemperature = totalTemperature / response.averageTemperatures.length;
+
+			// let higherTemperatureValue = 0;
+			// let higherTemperatureDay = 0;
+
+			// response.higherTemperatures.map(item => {
+			// 	if (item > higherTemperatureValue) {
+			// 		higherTemperatureValue = item;
+			// 		higherTemperatureDay = response.higherIrradiations.indexOf(item) + 1;
+			// 	}
+
+			// });
+
+			// if (higherIrradiationValue === 0) {
+			// 	higherIrradiationDay = "null";
+			// 	higherIrradiationValue = "null";
+			// }
+
+			// let lowerTemperatureValue = 100;
+			// let lowerTemperatureDay = 100;
+
+			// response.lowerTemperatures.map(item => {
+			// 	if (item < higherTemperatureValue) {
+			// 		lowerTemperatureValue = item;
+			// 		lowerTemperatureDay = response.lowerTemperatures.indexOf(item) + 1;
+			// 	}
+
+			// });
+
+			// if (lowerTemperatureValue === 100) {
+			// 	lowerTemperatureValue = "null";
+			// 	lowerTemperatureDay = "null";
+			// }
+
+			// // Precipitação
+
+			// let totalRainfall = 0
+			// response.accumulateHumidities.map(item => {
+			// 	if (typeof item === "number" && item >= 0) {
+			// 		totalRainfall += parseFloat(item);
+			// 	}
+			// });
+
+			// let averageRainfall = totalRainfall / response.accumulateHumidities.length;
+
+			// let mostRainfallDay = 0
+			// let mostRainfall = 0
+			
+			// response.accumulateHumidities.map(item => {
+			// 	if (item > mostRainfall) {
+			// 		mostRainfall = item;
+			// 		mostRainfallDay = response.accumulateHumidities.indexOf(item) + 1;
+			// 	}
+			// })
+
+			// // Velocidade do vento
+
+			// let totalWindSpeed = 0
+			// response.averageWindSpeeds.map(item => {
+			// 	if (typeof item === "number" && item >= 0) {
+			// 		totalWindSpeed += parseFloat(item);
+			// 	}
+			// });
+
+			// let averageWindSpeed = totalWindspeed / response.averageWindSpeeds.length;
+
+			// // PM1
+
+			// let totalAccumulatePM1 = 0
+			// response.accumulatePM1.map(item => {
+			// 	if (typeof item === "number" && item >= 0) {
+			// 		totalAccumulatePM1 += item;
+			// 	}
+			// })
+
+			// let averageAccumulatePM1 = totalAccumulatePM1 / response.accumulatePM1.length;
+
+			// let totalAveragePM1 = 0
+			// response.averagesPM1.map(item => {
+			// 	if (typeof item === "number" && item >= 0) {
+			// 		totalAveragePM1 += item;
+			// 	}
+			// })
+
+			// let averagePM1 = totalAveragePM1 / response.averagesPM1.length;
+
+			// // PM2
+
+			// let totalAccumulatePM2 = 0
+			// response.accumulatePM2.map(item => {
+			// 	if (typeof item === "number" && item >= 0) {
+			// 		totalAccumulatePM2 += item;
+			// 	}
+			// })
+
+			// let averageAccumulatePM2 = totalAccumulatePM2 / response.accumulatePM2.length;
+
+			// let totalAveragePM2 = 0
+			// response.averagesPM2.map(item => {
+			// 	if (typeof item === "number" && item >= 0) {
+			// 		totalAveragePM2 += item;
+			// 	}
+			// })
+
+			// let averagePM2 = totalAveragePM2 / response.averagesPM2.length;
+			
+			// let items = {
+			// 	ano: year,
+			// 	mes: month,
+			// 	irradiacao: {
+			// 		media: averageIrradiation,
+			// 		maiorIrradiacao: higherIrradiationValue,
+			// 		diaMaiorIrradiacao: higherIrradiationDay
+			// 	},
+			// 	temperatura: {
+			// 		media: averageTemperature,
+			// 		maiorTemperatura: higherTemperatureValue,
+			// 		diaMaiorTemperatura: higherTemperatureDay,
+			// 		menorTemperatura: lowerTemperatureValue,
+			// 		diaMenorTemperatura: lowerTemperatureDay
+			// 	},
+			// 	precipitacao: {
+			// 		acumulada: totalRainfall,
+			// 		media: averageRainfall,
+			// 		diaMaisChuva: mostRainfallDay,
+			// 		quantidadeMaisChuva: mostRainfall
+			// 	},
+			// 	velVento: {
+			// 		media: averageWindSpeed
+			// 	},
+			// 	PM1: {
+			// 		mediaMassa: averageAccumulatePM1,
+			// 		mediaConcentracao: averagePM1
+			// 	},
+			// 	PM2: {
+			// 		mediaMassa: averageAccumulatePM2,
+			// 		mediaConcentracao: averagePM2
+			// 	}
+
+			// };
+
+			// console.log(items);
+
+		})
+
+}
+
+resolveMonthPromise(20190901);
+
 module.exports = { CampoGrandeEnvironmentalServices }
