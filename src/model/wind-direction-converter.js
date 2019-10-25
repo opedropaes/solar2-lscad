@@ -14,7 +14,7 @@ const convert = degrees => {
         return "SW"
     else if (degrees > 247.5 && degrees <= 292.5)
         return "W"
-    else 
+    else if (degrees > 292.5 && degrees <= 337.5)
         return "NW"
 
 }

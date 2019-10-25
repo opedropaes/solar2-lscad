@@ -1,7 +1,6 @@
 const tableDefiner = require('./define-table')
 const dateFormater = require('./format-date')
 const AWSConfig = require('../config/config')
-const irradiationReader = require('./readCGProduction').CampoGrandeProductionServices
 const daysInMonthDefiner = require('../utils/daysInMonthDefiner')
 const windDirectionConverter = require('./wind-direction-converter')
 
@@ -26,6 +25,8 @@ const requireAWSData = async (params) => {
 		let PM2Particulates = []
 		let PM4Particulates = []
 		let PM10Particulates = []
+		let irradiations = []
+		let irradiationInterval = []
 
 
 		docClient.query(params, (err, data) => {
@@ -38,7 +39,6 @@ const requireAWSData = async (params) => {
 				data.Items.forEach(function (item) {
 					if (typeof data.Items != "undefined") {
 
-						//if (item.hora_minuto >= 60000 && item.hora_minuto <= 190000) {
 						let formatedDate = dateFormater.formatDate(item.dia_mes_ano, item.hora_minuto)
 
 						let type = item.tipo
@@ -55,6 +55,7 @@ const requireAWSData = async (params) => {
 						let windSpeed = item.ventor_vel
 						let averageSize = item.tamanho_medio
 						let humidity = item.hum
+						let irradiation = item.irr
 
 						items.push({
 							date: formatedDate.hourMin,
@@ -71,18 +72,23 @@ const requireAWSData = async (params) => {
 							type: type || "null",
 							windDir: windDir || 0,
 							windSpeed: windSpeed || 0,
-							humidity: humidity || 0
+							humidity: humidity || 0,
+							irradiation: irradiation || "null"
 						})
 
 						interval.push(formatedDate.hourMin)
 						qtd++
-						//}
+
+						if (item.hora_minuto >= 60000 && item.hora_minuto <= 190000) {
+							irradiationInterval.push(formatedDate.hourMin)
+						}
 
 					}
 
 				})
 
 				interval.sort()
+				irradiationInterval.sort()
 
 				for (let hour of interval) {
 					for (let item of items) {
@@ -101,6 +107,7 @@ const requireAWSData = async (params) => {
 							windDirections.push(item.windDir)
 							windSpeeds.push(item.windSpeed)
 							humidities.push(item.humidity)
+							irradiations.push(item.irradiation)
 						}
 					}
 				}
@@ -116,10 +123,13 @@ const requireAWSData = async (params) => {
 				PM2Numbers,
 				PM4Numbers,
 				PM10Numbers,
-				averageSizes
+				averageSizes,
+				irradiations,
+				irradiationInterval
 			}
 
 			let quarters = getQuarterValues(datesToGetQuarter, interval)
+			let irradiationQuartersInterval = quarters.irradiationInterval.filter(hour => typeof hour === "string")
 
 			resolve([
 				interval,
@@ -146,7 +156,9 @@ const requireAWSData = async (params) => {
 				quarters.PM10Particulates,
 				quarters.averageSizes,
 				quarters.interval,
-				humidities
+				humidities,
+				quarters.irradiationAverages,
+				irradiationQuartersInterval
 			])
 
 		})
@@ -167,12 +179,18 @@ const getQuarterValues = (data, dates) => {
 		let PM4Particulates = []
 		let PM10Particulates = []
 		let interval = []
+		let irradiationAverages = []
+		let irradiationSumPerMinute = 0
+		let irradiationQuantity = 0
+		let irradiationInterval = []
 
 		for (let i = 0; i < dates.length; i++) {
 
 			let minute = dates[i][3] + dates[i][4]
-
-			if (minute % 10 == 0) {
+			irradiationSumPerMinute += parseFloat(data.irradiations[i])
+			irradiationQuantity++
+			
+			if (minute % 15 == 0) {
 
 				interval.push(dates[i])
 				PM1Numbers.push(data.PM1Numbers[i])
@@ -184,6 +202,10 @@ const getQuarterValues = (data, dates) => {
 				PM2Particulates.push(data.PM2Particulates[i])
 				PM4Particulates.push(data.PM4Particulates[i])
 				PM10Particulates.push(data.PM10Particulates[i])
+				irradiationAverages.push(parseFloat((irradiationSumPerMinute / irradiationQuantity).toFixed(2)))
+				irradiationInterval.push(data.irradiationInterval[i])
+
+				irradiationQuantity = irradiationSumPerMinute = 0
 
 			}
 
@@ -199,7 +221,9 @@ const getQuarterValues = (data, dates) => {
 			PM2Particulates,
 			PM4Particulates,
 			PM10Particulates,
-			interval
+			irradiationAverages,
+			interval,
+			irradiationInterval
 		}
 
 	} catch (error) {
@@ -226,7 +250,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 			date[3]
 	}
 
-	let promiseEnv = new Promise((resolve, reject) => {
+	return new Promise((resolve, reject) => {
 
 		let params = tableDefiner.defineTable(
 			'campo-grande',
@@ -240,6 +264,23 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 
 		requireAWSData(params)
 			.then((response) => {
+
+				// Irradiação
+				let irradiations = (response[25].length) ? response[25] : [0]
+				let irradiationInterval = (response[26].length) ? response[26] : [0]
+				let effectiveIrradiations = irradiations.filter(irradiation => irradiation > 0)
+				let accumulateIrradiation = effectiveIrradiations.reduce((acc, cur) => acc + parseFloat(cur))
+				let higherIrradiation = 0
+
+				effectiveIrradiations.map(irradiation => {
+					if (irradiation > higherIrradiation)
+						higherIrradiation = parseInt(irradiation)
+				})
+
+				if (higherIrradiation === 0)
+					higherIrradiation = "null"
+
+				let irradiationAverage = accumulateIrradiation / effectiveIrradiations.length
 
 				//Temperatura
 
@@ -260,7 +301,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 
 				if (lowerTemperature === 100)
 					lowerTemperature = undefined
-				
+
 				if (higherTemperature === 0)
 					higherTemperature = undefined
 
@@ -317,6 +358,10 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				let items = {
 					period: "day",
 					interval: (response[0].length) ? response[0] : [0],
+					irradiation: effectiveIrradiations,
+					higherIrradiation: parseFloat(higherIrradiation),
+					irradiationAverage: parseFloat((irradiationAverage).toFixed(2)),
+					irradiationInterval,
 					PM1Particulates: (response[1].length) ? response[1] : [0],
 					averagePM1: parseFloat((averagePM1).toFixed(2)),
 					totalPM1: parseFloat((totalPM1).toFixed(2)),
@@ -363,8 +408,12 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				console.log(err)
 
 				let items = {
+					err,
 					period: "day",
 					interval: [0],
+					irradiation: [0],
+					higherIrradiation: 0,
+					irradiationAverage: 0,
 					PM1Particulates: [0],
 					averagePM1: 0,
 					PM2Particulates: [0],
@@ -407,49 +456,6 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 
 	})
 
-	let promiseIrr = new Promise((resolve, reject) => {
-		irradiationReader.readForOneDay(dateToRequest.year + dateToRequest.month + dateToRequest.day)
-			.then(response => {
-
-				let { irradiationAverages, interval, completeIrradiation, completeInterval } = response
-
-				let totalIrradiation = 0
-				let higherIrradiation = 0
-
-				irradiationAverages.map((item) => {
-					totalIrradiation += (item * 1000)
-					if (item > higherIrradiation) {
-						higherIrradiation = item
-					}
-				})
-
-				let averageIrradiation = totalIrradiation / ((irradiationAverages.length) ? irradiationAverages.length : 1)
-
-				resolve({
-					irradiation: irradiationAverages,
-					interval: interval,
-					completeIrradiation: completeIrradiation,
-					completeInterval: completeInterval,
-					accumulateIrradiation: totalIrradiation,
-					averageIrradiation: parseFloat((averageIrradiation).toFixed(2)),
-					higherIrradiation: parseFloat(higherIrradiation * 1000)
-
-				})
-			})
-			.catch(err => {
-				resolve({
-					irradiation: [0],
-					interval: [0],
-					completeIrradiation: [0],
-					completeInterval: [0],
-					accumulateIrradiation: 0,
-					averageIrradiation: 0,
-					higherIrradiation: 0
-				})
-			})
-	})
-
-	return Promise.all([promiseIrr, promiseEnv])
 }
 
 CampoGrandeEnvironmentalServices.readForOneMonth = async (date) => {
