@@ -404,4 +404,64 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 
 }
 
+const resolvePromiseMonth = (date) => {
+	CampoGrandeProductionServices.readForOneMonth(date)
+		.then(response => {
+
+			let month = date[4] + date[5];
+			let year = date[0] + date[1] + date[2] + date[3];
+
+			// PAC
+
+			let averagesSum = response.averages.reduce((acc, cur) => acc + parseFloat(cur));
+			let averageProduction = averagesSum / response.averages.length;
+
+			let higherAverage = 0;
+			let higherAverageDay = 0;
+
+			response.averages.map(item => {
+				if (item > higherAverage){
+					higherAverage = item
+					higherAverageDay = response.averages.indefOf(item) + 1;
+				}
+			});
+
+			if (higherAverage === 0) {
+				higherAverage = "null";
+				higherAverageDay = "null";
+			} 
+			
+			// Capacity Factor
+			let capacityFactor = response.capacityFactor
+			let hasCapacityFactor = capacityFactor.length
+			let capacityFactorSum = 
+				(hasCapacityFactor)
+					? capacityFactor.reduce((acc, cur) => acc + parseFloat(cur))
+					: 0
+			let capacityFactorAverage = capacityFactorSum / capacityFactor.length
+
+			// Total Production
+			let totalProduction = response.productions
+			let hasTotalProduction = totalProduction.length
+			let totalProductionSum = 
+				(hasTotalProduction)
+					? totalProduction.reduce((acc, cur) => acc + parseFloat(cur))
+					: 0
+				
+			let totalProductionAverage = totalProductionSum / totalProduction.length
+
+			//Performances
+			let performances = response.performances
+			let hasPerformances = performances.length
+			let performancesSum = 
+				(performances)
+					? performances.reduce((acc, cur) => acc + parseFloat(cur))
+					: 0
+			let performancesAverage = performancesSum / performances.length
+
+		})
+}
+
+resolvePromiseMonth("20190901")
+
 module.exports = { CampoGrandeProductionServices }
