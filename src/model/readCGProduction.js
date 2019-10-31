@@ -404,64 +404,82 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 
 }
 
-const resolvePromiseMonth = (date) => {
-	CampoGrandeProductionServices.readForOneMonth(date)
-		.then(response => {
+CampoGrandeProductionServices.readForOneYear = async (date) => {
 
-			let month = date[4] + date[5];
-			let year = date[0] + date[1] + date[2] + date[3];
+	let averageProductions = []
+	let capacityFactorAverages = []
+	let higherAverages = []
+	let higherAverageDays = []
+	let performancesAverages = []
+	let totalProductionAverages = []
+	let months = []
 
-			// PAC
+	let dateToRequest = {
+		year: date[0] + date[1] + date[2] + date[3],
+		month: date[4] + date[5],
+		day: date[6] + date[7]
+	}
 
-			let averagesSum = response.averages.reduce((acc, cur) => acc + parseFloat(cur));
-			let averageProduction = averagesSum / response.averages.length;
+	let params = tableDefiner.defineTable
+		(
+			'campo-grande',
+			'production-year',
+			null,
+			dateToRequest.day,
+			dateToRequest.month,
+			dateToRequest.year,
+			null
+		)
 
-			let higherAverage = 0;
-			let higherAverageDay = 0;
+	docClient.query(params, (err, data) => {
+		if (err) {
+			console.log(err);
+		} else {
+			data.Items.forEach(item => {
+				if (typeof data.Items != 'undefined') {
+					let averageProduction = parseFloat((item.averageProduction).toFixed(3))
+					let capacityFactorAverage = parseFloat((item.capacityFactorAverage).toFixed(3))
+					let higherAverage = parseFloat((item.higherAverage).toFixed(3))
+					let performancesAverage = parseFloat((item.performancesAverage).toFixed(3))
+					let totalProductionAverage = parseFloat((item.totalProductionAverage).toFixed(3))
+					let { higherAverageDay } = item
+					let { month } = months
 
-			response.averages.map(item => {
-				if (item > higherAverage){
-					higherAverage = item
-					higherAverageDay = response.averages.indefOf(item) + 1;
+					averageProductions.push(averageProduction)
+					capacityFactorAverages.push(capacityFactorAverage)
+					higherAverages.push(higherAverage)
+					higherAverageDays.push(higherAverageDay)
+					performancesAverages.push(performancesAverage)
+					totalProductionAverages.push(totalProductionAverage)
+					months.push(month)
 				}
-			});
+			})
 
-			if (higherAverage === 0) {
-				higherAverage = "null";
-				higherAverageDay = "null";
-			} 
-			
-			// Capacity Factor
-			let capacityFactor = response.capacityFactor
-			let hasCapacityFactor = capacityFactor.length
-			let capacityFactorSum = 
-				(hasCapacityFactor)
-					? capacityFactor.reduce((acc, cur) => acc + parseFloat(cur))
-					: 0
-			let capacityFactorAverage = capacityFactorSum / capacityFactor.length
+			// TODO: resolve
 
-			// Total Production
-			let totalProduction = response.productions
-			let hasTotalProduction = totalProduction.length
-			let totalProductionSum = 
-				(hasTotalProduction)
-					? totalProduction.reduce((acc, cur) => acc + parseFloat(cur))
-					: 0
-				
-			let totalProductionAverage = totalProductionSum / totalProduction.length
+		}
+	})	
 
-			//Performances
-			let performances = response.performances
-			let hasPerformances = performances.length
-			let performancesSum = 
-				(performances)
-					? performances.reduce((acc, cur) => acc + parseFloat(cur))
-					: 0
-			let performancesAverage = performancesSum / performances.length
+	
 
-		})
+
 }
 
-resolvePromiseMonth("20190901")
+/**
+ * params = {
+		TableName: "inversor_1_ufms_anual",
+		Item: {
+			ano: parseInt(date[0] + date[1] + date[2] + date[3]),
+			mes: date[4] + date[5],
+			averageProduction,
+			higherAverage,
+			higherAverageDay,
+			capacityFactorAverage,
+			totalProductionAverage,
+			performancesAverage
+		}
+
+	}
+ */
 
 module.exports = { CampoGrandeProductionServices }
