@@ -480,21 +480,4 @@ CampoGrandeProductionServices.readForOneYear = async (date) => {
 
 }
 
-/**
- * params = {
-		TableName: "inversor_1_ufms_anual",
-		Item: {
-			ano: parseInt(date[0] + date[1] + date[2] + date[3]),
-			mes: date[4] + date[5],
-			averageProduction,
-			higherAverage,
-			higherAverageDay,
-			capacityFactorAverage,
-			totalProductionAverage,
-			performancesAverage
-		}
-
-	}
- */
-
 module.exports = { CampoGrandeProductionServices }

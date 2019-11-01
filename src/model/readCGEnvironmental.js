@@ -110,7 +110,7 @@ const requireAWSData = async (params) => {
 						}
 					}
 				}
-				
+
 			}
 
 			let datesToGetQuarter = {
@@ -188,7 +188,7 @@ const getQuarterValues = (data, dates) => {
 			let minute = dates[i][3] + dates[i][4]
 			irradiationSumPerMinute += parseFloat(data.irradiations[i])
 			irradiationQuantity++
-			
+
 			if (minute % 15 == 0) {
 
 				interval.push(dates[i])
@@ -368,7 +368,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				let southEast = 0
 
 				windDirections.map(direction => {
-					if (direction === "N") 
+					if (direction === "N")
 						north++
 					else if (direction === "NE")
 						northEast++
@@ -383,7 +383,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					else if (direction === "W")
 						west++
 					else if (direction === "NW")
-						northWest++	
+						northWest++
 				})
 
 				let eachWindDirectionPercentage = {
@@ -611,6 +611,116 @@ CampoGrandeEnvironmentalServices.readForOneMonth = async (date) => {
 				})
 		})
 	})
+
+}
+
+const resolveMonthData = (date) => {
+
+	CampoGrandeEnvironmentalServices.readForOneMonth(date)
+		.then(response => {
+			let {
+				averageIrradiations,
+				higherIrradiations,
+				averageTemperatures,
+				higherTemperatures,
+				lowerTemperatures,
+				accumulateHumidities,
+				averageWindSpeeds,
+				accumulatePM1,
+				averagesPM1,
+				accumulatePM2,
+				averagesPM2 } = response
+
+			// Irradiacao 
+			let hasIrradiation = averageIrradiations.length
+			let averageIrradiationsSum = (hasIrradiation)
+				? averageIrradiations.reduce((acc, cur) => acc + (!isNaN(parseFloat(cur))) ? parseFloat(cur) : 0)
+				: 0
+			let averageIrradiationsAverage = averageIrradiationsSum / averageIrradiations.length
+
+			// Maior irradiacao do mes
+			let hasHigherIrradiation = higherIrradiations.length
+			let effectiveIrradiations = (hasHigherIrradiation)
+				? higherIrradiations.filter(item => item != "null")
+				: [0]
+			let higherIrradiation = (hasHigherIrradiation)
+				? max(effectiveIrradiations)
+				: "null"
+			let higherIrradiationDay = (hasHigherIrradiation)
+				? higherIrradiations.indexOf(higherIrradiations) + 1
+				: "null"
+
+			// Temperatura
+			let hasTemperatures = averageTemperatures.length
+			let averageTemperaturesSum = (hasTemperatures)
+				? averageTemperatures.reduce((acc, cur) => acc + (!isNaN(parseFloat(cur))) ? parseFloat(cur) : 0)
+				: 0
+			let averageTemperaturesAverage = averageTemperaturesSum / averageTemperatures.length
+
+			// Maior temperatura do mes
+			let hasHigherTemperatures = higherTemperatures.length
+			let effectiveHigherTemperatures = (hasHigherTemperatures)
+				? higherTemperatures.filter(item => item != "null")
+				: [0]
+			let higherTemperature = (hasHigherTemperatures)
+				? max(effectiveHigherTemperatures)
+				: "null"
+			let higherTemperatureDay = (hasHigherTemperatures)
+				? higherTemperatures.indexOf(higherTemperature) + 1
+				: "null"
+			
+			// Menor temperatura do mes
+			let hasLowerTemperatures = lowerTemperatures.length
+			let effectiveLowerTemperatures = (hasLowerTemperatures)
+				? lowerTemperatures.filter(item => item != "null")
+				: [0]
+			let lowerTemperature = (hasLowerTemperatures)
+				? max(effectiveLowerTemperatures)
+				: "null"
+			let lowerTemperatureDay = (hasLowerTemperatures)
+				? lowerTemperatures.indexOf(lowerTemperature) + 1
+				: "null"
+			
+			// Precipicação
+			let hasAccumulateHumidities = accumulateHumidities.length
+			
+
+			// Maior precipitação do mes
+
+			// Velocidade do vento
+
+			// Maior velocidade do vento do mes
+
+			// Massa PM1
+
+			// Massa PM2
+
+			// Concentração PM1
+
+			// Maior Concontração PM1 do mes
+
+			// Concentração PM2
+
+			// Maior Concentração PM2 do mes
+
+		})
+
+	/**
+ * params = {
+		TableName: "inversor_1_ufms_anual",
+		Item: {
+			ano: parseInt(date[0] + date[1] + date[2] + date[3]),
+			mes: date[4] + date[5],
+			averageProduction,
+			higherAverage,
+			higherAverageDay,
+			capacityFactorAverage,
+			totalProductionAverage,
+			performancesAverage
+		}
+
+	}
+ */
 
 }
 
