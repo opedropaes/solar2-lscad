@@ -420,46 +420,61 @@ CampoGrandeProductionServices.readForOneYear = async (date) => {
 		day: date[6] + date[7]
 	}
 
-	let params = tableDefiner.defineTable
-		(
-			'campo-grande',
-			'production-year',
-			null,
-			dateToRequest.day,
-			dateToRequest.month,
-			dateToRequest.year,
-			null
-		)
+	return new Promise ((resolve, reject) => {
+		let params = tableDefiner.defineTable
+			(
+				'campo-grande',
+				'production-year',
+				null,
+				dateToRequest.day,
+				dateToRequest.month,
+				dateToRequest.year,
+				null
+			)
 
-	docClient.query(params, (err, data) => {
-		if (err) {
-			console.log(err);
-		} else {
-			data.Items.forEach(item => {
-				if (typeof data.Items != 'undefined') {
-					let averageProduction = parseFloat((item.averageProduction).toFixed(3))
-					let capacityFactorAverage = parseFloat((item.capacityFactorAverage).toFixed(3))
-					let higherAverage = parseFloat((item.higherAverage).toFixed(3))
-					let performancesAverage = parseFloat((item.performancesAverage).toFixed(3))
-					let totalProductionAverage = parseFloat((item.totalProductionAverage).toFixed(3))
-					let { higherAverageDay } = item
-					let { month } = months
+		docClient.query(params, (err, data) => {
+			if (err) {
+				console.log(err);
+				resolve({ err })
+			} else {
+				data.Items.forEach(item => {
+					if (typeof data.Items != 'undefined') {
+						let averageProduction = parseFloat((item.averageProduction).toFixed(3))
+						let capacityFactorAverage = parseFloat((item.capacityFactorAverage).toFixed(3))
+						let higherAverage = parseFloat((item.higherAverage).toFixed(3))
+						let performancesAverage = parseFloat((item.performancesAverage).toFixed(3))
+						let totalProductionAverage = parseFloat((item.totalProductionAverage).toFixed(3))
+						let { higherAverageDay } = item
+						let { month } = months
 
-					averageProductions.push(averageProduction)
-					capacityFactorAverages.push(capacityFactorAverage)
-					higherAverages.push(higherAverage)
-					higherAverageDays.push(higherAverageDay)
-					performancesAverages.push(performancesAverage)
-					totalProductionAverages.push(totalProductionAverage)
-					months.push(month)
+						averageProductions.push(averageProduction)
+						capacityFactorAverages.push(capacityFactorAverage)
+						higherAverages.push(higherAverage)
+						higherAverageDays.push(higherAverageDay)
+						performancesAverages.push(performancesAverage)
+						totalProductionAverages.push(totalProductionAverage)
+						months.push(month)
+					}
+				})
+
+				let items = {
+					averageProductions,
+					capacityFactorAverages,
+					higherAverages,
+					higherAverageDays,
+					performancesAverages,
+					totalProductionAverages,
+					months,
+					year: dateToRequest.year,
+					period: "year"
 				}
-			})
 
-			// TODO: resolve
+				resolve(items)
 
-		}
-	})	
+			}
+		})	
 
+	})
 	
 
 
