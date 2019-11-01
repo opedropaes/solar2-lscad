@@ -404,4 +404,82 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 
 }
 
+CampoGrandeProductionServices.readForOneYear = async (date) => {
+
+	let averageProductions = []
+	let capacityFactorAverages = []
+	let higherAverages = []
+	let higherAverageDays = []
+	let performancesAverages = []
+	let totalProductionAverages = []
+	let months = []
+
+	let dateToRequest = {
+		year: date[0] + date[1] + date[2] + date[3],
+		month: date[4] + date[5],
+		day: date[6] + date[7]
+	}
+
+	let params = tableDefiner.defineTable
+		(
+			'campo-grande',
+			'production-year',
+			null,
+			dateToRequest.day,
+			dateToRequest.month,
+			dateToRequest.year,
+			null
+		)
+
+	docClient.query(params, (err, data) => {
+		if (err) {
+			console.log(err);
+		} else {
+			data.Items.forEach(item => {
+				if (typeof data.Items != 'undefined') {
+					let averageProduction = parseFloat((item.averageProduction).toFixed(3))
+					let capacityFactorAverage = parseFloat((item.capacityFactorAverage).toFixed(3))
+					let higherAverage = parseFloat((item.higherAverage).toFixed(3))
+					let performancesAverage = parseFloat((item.performancesAverage).toFixed(3))
+					let totalProductionAverage = parseFloat((item.totalProductionAverage).toFixed(3))
+					let { higherAverageDay } = item
+					let { month } = months
+
+					averageProductions.push(averageProduction)
+					capacityFactorAverages.push(capacityFactorAverage)
+					higherAverages.push(higherAverage)
+					higherAverageDays.push(higherAverageDay)
+					performancesAverages.push(performancesAverage)
+					totalProductionAverages.push(totalProductionAverage)
+					months.push(month)
+				}
+			})
+
+			// TODO: resolve
+
+		}
+	})	
+
+	
+
+
+}
+
+/**
+ * params = {
+		TableName: "inversor_1_ufms_anual",
+		Item: {
+			ano: parseInt(date[0] + date[1] + date[2] + date[3]),
+			mes: date[4] + date[5],
+			averageProduction,
+			higherAverage,
+			higherAverageDay,
+			capacityFactorAverage,
+			totalProductionAverage,
+			performancesAverage
+		}
+
+	}
+ */
+
 module.exports = { CampoGrandeProductionServices }

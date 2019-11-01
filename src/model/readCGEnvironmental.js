@@ -571,7 +571,6 @@ CampoGrandeEnvironmentalServices.readForOneMonth = async (date) => {
 
 }
 
-const resolveMonthPromise = async (date) => {
 
 	console.log(date, "date")
 
@@ -757,4 +756,3 @@ const resolveMonthPromise = async (date) => {
 
 resolveMonthPromise(20190901);
 
-module.exports = { CampoGrandeEnvironmentalServices }
