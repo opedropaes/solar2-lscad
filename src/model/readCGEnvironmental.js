@@ -28,7 +28,6 @@ const requireAWSData = async (params) => {
 		let irradiations = []
 		let irradiationInterval = []
 
-
 		docClient.query(params, (err, data) => {
 			if (err) {
 				reject("Unable to scan table. Error JSON: " + JSON.stringify(err, null, 2))
@@ -111,7 +110,7 @@ const requireAWSData = async (params) => {
 						}
 					}
 				}
-
+				
 			}
 
 			let datesToGetQuarter = {
@@ -269,7 +268,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				let irradiations = (response[25].length) ? response[25] : [0]
 				let irradiationInterval = (response[26].length) ? response[26] : [0]
 				let effectiveIrradiations = irradiations.filter(irradiation => irradiation > 0)
-				let accumulateIrradiation = effectiveIrradiations.reduce((acc, cur) => acc + parseFloat(cur))
+				let accumulateIrradiation = (effectiveIrradiations.length) ? (effectiveIrradiations.reduce((acc, cur) => acc + parseFloat(cur))) : 0
 				let higherIrradiation = 0
 
 				effectiveIrradiations.map(irradiation => {
@@ -355,6 +354,49 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 
 				let averagePM2 = totalPM2 / ((pm2Exists) ? pm2.length : 1)
 
+				// Direção do vento
+
+				let windDirections = (response[12].length) ? response[12] : [0]
+
+				let north = 0
+				let south = 0
+				let east = 0
+				let west = 0
+				let northWest = 0
+				let northEast = 0
+				let southWest = 0
+				let southEast = 0
+
+				windDirections.map(direction => {
+					if (direction === "N") 
+						north++
+					else if (direction === "NE")
+						northEast++
+					else if (direction === "E")
+						east++
+					else if (direction === "SE")
+						southEast++
+					else if (direction === "S")
+						south++
+					else if (direction === "SW")
+						southWest++
+					else if (direction === "W")
+						west++
+					else if (direction === "NW")
+						northWest++	
+				})
+
+				let eachWindDirectionPercentage = {
+					north: parseFloat(((north / windDirections.length) * 100).toFixed(2)),
+					northEast: parseFloat(((northEast / windDirections.length) * 100).toFixed(2)),
+					east: parseFloat(((east / windDirections.length) * 100).toFixed(2)),
+					southEast: parseFloat(((southEast / windDirections.length) * 100).toFixed(2)),
+					south: parseFloat(((south / windDirections.length) * 100).toFixed(2)),
+					southWest: parseFloat(((southWest / windDirections.length) * 100).toFixed(2)),
+					west: parseFloat(((west / windDirections.length) * 100).toFixed(2)),
+					northWest: parseFloat(((northWest / windDirections.length) * 100).toFixed(2)),
+				}
+
 				let items = {
 					period: "day",
 					interval: (response[0].length) ? response[0] : [0],
@@ -379,8 +421,8 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					averageTemperature: parseFloat((averageTemperature).toFixed(2)),
 					lowerTemperature,
 					higherTemperature,
-					types: (response[11].length) ? response[11] : [0],
-					windDirections: (response[12].length) ? response[12] : [0],
+					windDirections,
+					eachWindDirectionPercentage,
 					windSpeeds: (response[13].length) ? response[13] : [0],
 					averageWindSpeed,
 					PM1NumbersQuarters: (response[14].length) ? response[14] : [0],
@@ -431,6 +473,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					higherTemperature: 0,
 					types: [0],
 					windDirections: [0],
+					eachWindDirectionPercentage: [0],
 					windSpeeds: [0],
 					averageWindSpeed: 0,
 					PM1NumbersQuarters: [0],
@@ -500,17 +543,17 @@ CampoGrandeEnvironmentalServices.readForOneMonth = async (date) => {
 					monthInterval.push(day)
 					monthInterval.sort()
 
-					averageIrradiations[day - 1] = response[0].averageIrradiation
-					higherIrradiations[day - 1] = response[0].higherIrradiation
-					averageTemperatures[day - 1] = response[1].averageTemperature
-					higherTemperatures[day - 1] = response[1].higherTemperature
-					lowerTemperatures[day - 1] = response[1].lowerTemperature
-					accumulateHumidities[day - 1] = response[1].accumulateHumidity
-					averageWindSpeeds[day - 1] = response[1].averageWindSpeed
-					accumulatePM1[day - 1] = response[1].totalPM1
-					averagesPM1[day - 1] = response[1].averagePM1
-					accumulatePM2[day - 1] = response[1].totalPM2
-					averagesPM2[day - 1] = response[1].averagePM2
+					averageIrradiations[day - 1] = response.irradiationAverage
+					higherIrradiations[day - 1] = response.higherIrradiation
+					averageTemperatures[day - 1] = response.averageTemperature
+					higherTemperatures[day - 1] = response.higherTemperature
+					lowerTemperatures[day - 1] = response.lowerTemperature
+					accumulateHumidities[day - 1] = response.accumulateHumidity
+					averageWindSpeeds[day - 1] = response.averageWindSpeed
+					accumulatePM1[day - 1] = response.totalPM1
+					averagesPM1[day - 1] = response.averagePM1
+					accumulatePM2[day - 1] = response.totalPM2
+					averagesPM2[day - 1] = response.averagePM2
 
 					if (monthInterval.length === days.length) {
 
@@ -570,184 +613,5 @@ CampoGrandeEnvironmentalServices.readForOneMonth = async (date) => {
 	})
 
 }
-	console.log(date, "date")
 
-	CampoGrandeProductionServices.readForOneMonth(date)
-		.then(response => {
-
-			console.log(response)
-
-			let year = response.year;
-			let month = response.month;
-
-			// Irradiacao
-			// console.log(response.averageIrradiations)
-			// let totalAverageIrradiation = response.averageIrradiations.reduce((acc, cur) => acc + parseFloat(cur));
-			// let averageIrradiation = totalAverageIrradiation / response.averageIrradiations.length;
-			
-			// let higherIrradiationValue = 0;
-			// let higherIrradiationDay = 0;
-
-			// response.higherIrradiations.map(item => {
-			// 	if (item > higherIrradiationValue) {
-			// 		higherIrradiationValue = item;
-			// 		higherIrradiationDay = response.higherIrradiations.indexOf(item) + 1;
-			// 	}
-					
-			// });
-
-			// Temperatura
-
-			let totalTemperature = 0
-			response.averageTemperatures.map(item => {
-				if (typeof item === "number" && item >= 0) {
-					totalTemperature += parseFloat(item);
-				}
-			});
-
-			let averageTemperature = totalTemperature / response.averageTemperatures.length;
-
-			let higherTemperatureValue = 0;
-			let higherTemperatureDay = 0;
-
-			response.higherTemperatures.map(item => {
-				if (item > higherTemperatureValue) {
-					higherTemperatureValue = item;
-					higherTemperatureDay = response.higherIrradiations.indexOf(item) + 1;
-				}
-
-			});
-
-			if (higherIrradiationValue === 0) {
-				higherIrradiationDay = "null";
-				higherIrradiationValue = "null";
-			}
-
-			let lowerTemperatureValue = 100;
-			let lowerTemperatureDay = 100;
-
-			response.lowerTemperatures.map(item => {
-				if (item < higherTemperatureValue) {
-					lowerTemperatureValue = item;
-					lowerTemperatureDay = response.lowerTemperatures.indexOf(item) + 1;
-				}
-
-			});
-
-			if (lowerTemperatureValue === 100) {
-				lowerTemperatureValue = "null";
-				lowerTemperatureDay = "null";
-			}
-
-			// Precipitação
-
-			let totalRainfall = 0
-			response.accumulateHumidities.map(item => {
-				if (typeof item === "number" && item >= 0) {
-					totalRainfall += parseFloat(item);
-				}
-			});
-
-			let averageRainfall = totalRainfall / response.accumulateHumidities.length;
-
-			let mostRainfallDay = 0
-			let mostRainfall = 0
-			
-			response.accumulateHumidities.map(item => {
-				if (item > mostRainfall) {
-					mostRainfall = item;
-					mostRainfallDay = response.accumulateHumidities.indexOf(item) + 1;
-				}
-			})
-
-			// Velocidade do vento
-
-			let totalWindSpeed = 0
-			response.averageWindSpeeds.map(item => {
-				if (typeof item === "number" && item >= 0) {
-					totalWindSpeed += parseFloat(item);
-				}
-			});
-
-			let averageWindSpeed = totalWindspeed / response.averageWindSpeeds.length;
-
-			// PM1
-
-			let totalAccumulatePM1 = 0
-			response.accumulatePM1.map(item => {
-				if (typeof item === "number" && item >= 0) {
-					totalAccumulatePM1 += item;
-				}
-			})
-
-			let averageAccumulatePM1 = totalAccumulatePM1 / response.accumulatePM1.length;
-
-			let totalAveragePM1 = 0
-			response.averagesPM1.map(item => {
-				if (typeof item === "number" && item >= 0) {
-					totalAveragePM1 += item;
-				}
-			})
-
-			let averagePM1 = totalAveragePM1 / response.averagesPM1.length;
-
-			// PM2
-
-			let totalAccumulatePM2 = 0
-			response.accumulatePM2.map(item => {
-				if (typeof item === "number" && item >= 0) {
-					totalAccumulatePM2 += item;
-				}
-			})
-
-			let averageAccumulatePM2 = totalAccumulatePM2 / response.accumulatePM2.length;
-
-			let totalAveragePM2 = 0
-			response.averagesPM2.map(item => {
-				if (typeof item === "number" && item >= 0) {
-					totalAveragePM2 += item;
-				}
-			})
-
-			let averagePM2 = totalAveragePM2 / response.averagesPM2.length;
-			
-			let items = {
-				ano: year,
-				mes: month,
-				irradiacao: {
-					media: averageIrradiation,
-					maiorIrradiacao: higherIrradiationValue,
-					diaMaiorIrradiacao: higherIrradiationDay
-				},
-				temperatura: {
-					media: averageTemperature,
-					maiorTemperatura: higherTemperatureValue,
-					diaMaiorTemperatura: higherTemperatureDay,
-					menorTemperatura: lowerTemperatureValue,
-					diaMenorTemperatura: lowerTemperatureDay
-				},
-				precipitacao: {
-					acumulada: totalRainfall,
-					media: averageRainfall,
-					diaMaisChuva: mostRainfallDay,
-					quantidadeMaisChuva: mostRainfall
-				},
-				velVento: {
-					media: averageWindSpeed
-				},
-				PM1: {
-					mediaMassa: averageAccumulatePM1,
-					mediaConcentracao: averagePM1
-				},
-				PM2: {
-					mediaMassa: averageAccumulatePM2,
-					mediaConcentracao: averagePM2
-				}
-
-			};
-
-			console.log(items);
-
-		})
-
-// resolveMonthPromise(20190901);
+module.exports = { CampoGrandeEnvironmentalServices }

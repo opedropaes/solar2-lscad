@@ -59,6 +59,17 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 				}
 			}
 		}
+		
+		else if (type == 'production-year') {
+			params = {
+				TableName: "inversor_1_ufms_anual",
+				ProjectionExpression: "ano, mes, averageProduction, capacityFactorAverage, higherAverage, higherAverageDay, performancesAverage, totalProductionAverage",
+				KeyConditionExpression: "ano = :inicio_data",
+				ExpressionAttributeValues: {
+					":inicio_data": parseInt(year),
+				}
+			}
+		}
 
 		else if (type == 'environmental') {
 			params = {
