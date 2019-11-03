@@ -85,6 +85,17 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 			}
 		}
 
+		else if (type == 'environmental-year') {
+			params = {
+				TableName: "ambientais_ufms_anual",
+				ProjectionExpression: "ano, mes, temperature, irradiation, windSpeed, rainfall, PM1, PM2",
+				KeyConditionExpression: "ano = :inicio",
+				ExpressionAttributeValues: {
+					":inicio": parseInt(year)
+				}
+			}
+		}
+
 	}
 
 	// console.log(params)

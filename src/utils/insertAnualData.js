@@ -320,3 +320,177 @@ const resolveMonth = (date) => {
             console.log(err)
         })
 }
+
+// Irece Environmental
+
+const resolveMonthData = async (date) => {
+
+    IreceEnvironmentalServices.readForOneMonth(date)
+        .then(response => {
+            let {
+                averageIrradiations,
+                higherIrradiations,
+                averageTemperatures,
+                higherTemperatures,
+                lowerTemperatures,
+                accumulateRainfall,
+                averageWindSpeeds } = response
+
+            // Irradiacao 
+            let hasIrradiation = averageIrradiations.length
+            let effectiveIrradiations = (hasIrradiation)
+                ? averageIrradiations.filter(item => item != null && !isNaN(item))
+                : [0]
+            let averageIrradiationsSum = (hasIrradiation)
+                ? effectiveIrradiations.reduce((acc, cur) => acc + parseFloat(cur))
+                : 0
+            let averageIrradiationsAverage = parseFloat((averageIrradiationsSum / effectiveIrradiations.length).toFixed(2))
+
+            // Maior irradiacao do mes
+            let hasHigherIrradiation = higherIrradiations.length
+            let higherIrradiation = (hasHigherIrradiation)
+                ? max(higherIrradiations)
+                : "null"
+            let higherIrradiationDay = (hasHigherIrradiation)
+                ? higherIrradiations.indexOf(higherIrradiation) + 1
+                : "null"
+
+            // Temperatura
+            let hasTemperatures = averageTemperatures.length
+            let effectiveTemperature = (hasTemperatures)
+                ? averageTemperatures.filter(item => item != null && !isNaN(item))
+                : [0]
+
+            let averageTemperaturesSum = (hasTemperatures)
+                ? effectiveTemperature.reduce((acc, cur) => acc + parseFloat(cur))
+                : 0
+            let averageTemperaturesAverage = parseFloat((averageTemperaturesSum / effectiveTemperature.length).toFixed(2))
+
+            // Maior temperatura do mes
+            let hasHigherTemperatures = higherTemperatures.length
+            let effectiveHigherTemperatures = (hasHigherTemperatures)
+                ? higherTemperatures.filter(item => item != "null")
+                : [0]
+            let higherTemperature = (hasHigherTemperatures)
+                ? max(effectiveHigherTemperatures)
+                : "null"
+            let higherTemperatureDay = (hasHigherTemperatures)
+                ? higherTemperatures.indexOf(higherTemperature) + 1
+                : "null"
+
+            // Menor temperatura do mes
+            let hasLowerTemperatures = lowerTemperatures.length
+            let effectiveLowerTemperatures = (hasLowerTemperatures)
+                ? lowerTemperatures.filter(item => item != "null")
+                : [0]
+            let lowerTemperature = (hasLowerTemperatures)
+                ? max(effectiveLowerTemperatures)
+                : "null"
+            let lowerTemperatureDay = (hasLowerTemperatures)
+                ? lowerTemperatures.indexOf(lowerTemperature) + 1
+                : "null"
+
+            // Precipicação
+            let hasAccumulateRainfall = accumulateRainfall.length
+            let totalAccumulateRainfall = (hasAccumulateRainfall)
+                ? accumulateRainfall.reduce((acc, cur) => acc + parseFloat(cur))
+                : 0
+
+            // Maior precipitação do mes
+            let higherAccumulateRainfall = (hasAccumulateRainfall)
+                ? max(accumulateRainfall)
+                : "null"
+            let higherAccumulateRainfallDay = (hasAccumulateRainfall)
+                ? accumulateRainfall.indexOf(higherAccumulateRainfall)
+                : "null"
+
+            // Velocidade do vento
+            let hasWindSpeed = averageWindSpeeds.length
+            let effectiveWindSpeed = (hasWindSpeed)
+                ? averageWindSpeeds.filter(item => item != null && !isNaN(item))
+                : [0]
+            let totalWindspeed = (hasWindSpeed)
+                ? effectiveWindSpeed.reduce((acc, cur) => acc + parseFloat(cur))
+                : 0
+            let averageWindSpeed = (hasWindSpeed)
+                ? parseFloat((totalWindspeed / effectiveWindSpeed.length).toFixed(3))
+                : "null"
+
+            // Maior velocidade do vento do mes
+            let higherWindSpeed = (hasWindSpeed)
+                ? max(effectiveWindSpeed)
+                : "null"
+            let higherWindSpeedDay = (hasWindSpeed && averageWindSpeed != 0)
+                ? averageWindSpeeds.indexOf(higherWindSpeed)
+                : "null"
+
+            let items = {
+                ano: parseInt(date[0] + date[1] + date[2] + date[3]),
+                mes: date[4] + date[5],
+                irradiation: {
+                    averageIrradiation: averageIrradiationsAverage,
+                    higherIrradiation,
+                    higherIrradiationDay,
+                },
+                temperature: {
+                    averageTemperature: averageTemperaturesAverage,
+                    higherTemperature,
+                    higherTemperatureDay,
+                    lowerTemperature,
+                    lowerTemperatureDay,
+                },
+                rainfall: {
+                    accumulateRainfall: totalAccumulateRainfall,
+                    higherAccumulateRainfall,
+                    higherAccumulateRainfallDay,
+                },
+                windSpeed: {
+                    averageWindSpeed,
+                    higherWindSpeed,
+                    higherWindSpeedDay,
+                }
+            }
+
+            // console.log(items)
+
+            let params = {
+                TableName: "ambientais_ifba_anual",
+                Item: items
+            }
+
+            docClient.put(params, (err, data) => {
+                if (err) {
+                    console.log(JSON.stringify(err))
+                } else {
+                    console.log("put item: ", JSON.stringify(data), items.ano, items.mes)
+                }
+            })
+
+        })
+        .catch(err => {
+            console.log(err)
+        })
+
+}
+
+let date = {
+    year: '2018',
+    month: '05',
+    day: '01'
+}
+
+const interval = setInterval(async () => {
+    if (date.year + date.month < '201911' && date.month < 12) {
+        await resolveMonthData(date.year + date.month + date.day)
+        date.month = parseInt(date.month)
+        date.month++
+        date.month = (date.month >= 10) ? date.month : ('0' + date.month).slice(-2)
+    } else if (date.year + date.month < '201911' && date.month == 12) {
+        await resolveMonthData(date.year + date.month + date.day)
+        date.year = parseInt(date.year)
+        date.year++
+        date.year = JSON.stringify(date.year)
+        date.month = "01"
+    } else clearInterval(interval)
+
+}, 10000)

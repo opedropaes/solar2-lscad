@@ -412,7 +412,7 @@ CampoGrandeProductionServices.readForOneYear = async (date) => {
 	let higherAverageDays = []
 	let performancesAverages = []
 	let totalProductionAverages = []
-	let months = []
+	let yearInterval = []
 
 	let dateToRequest = {
 		year: date[0] + date[1] + date[2] + date[3],
@@ -453,7 +453,7 @@ CampoGrandeProductionServices.readForOneYear = async (date) => {
 						higherAverageDays.push(higherAverageDay)
 						performancesAverages.push(performancesAverage)
 						totalProductionAverages.push(totalProductionAverage)
-						months.push(mes)
+						yearInterval.push(mes)
 					}
 				})
 
@@ -464,7 +464,7 @@ CampoGrandeProductionServices.readForOneYear = async (date) => {
 					higherAverageDays,
 					performancesAverages,
 					totalProductionAverages,
-					months,
+					yearInterval,
 					year: dateToRequest.year,
 					period: "year"
 				}
@@ -475,8 +475,6 @@ CampoGrandeProductionServices.readForOneYear = async (date) => {
 		})	
 
 	})
-	
-
 
 }
 
