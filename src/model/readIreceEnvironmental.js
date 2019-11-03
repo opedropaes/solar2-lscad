@@ -343,4 +343,70 @@ IreceEnvironmentalServices.readForOneMonth = async (date) => {
 
 }
 
+IreceEnvironmentalServices.readForOneYear = async (date) => {
+
+	let irradiations = []
+	let rainfalls = []
+	let temperatures = []
+	let windSpeeds = []
+	let yearInterval = []
+
+	let dateToRequest = {
+		year: date[0] + date[1] + date[2] + date[3],
+		month: date[4] + date[5],
+		day: date[6] + date[7]
+	}
+
+	return new Promise((resolve, reject) => {
+		let params = tableDefiner.defineTable
+			(
+				'irece',
+				'environmental-year',
+				null,
+				dateToRequest.day,
+				dateToRequest.month,
+				dateToRequest.year,
+				null
+			)
+		let year = dateToRequest.year
+
+		docClient.query(params, (err, data) => {
+			if (err) {
+				console.log(err);
+				resolve({ err })
+			} else {
+				data.Items.forEach(item => {
+					if (typeof data.Items != 'undefined') {
+
+						let { ano, mes, irradiation, temperature, windSpeed, rainfall } = item
+
+						yearInterval.push(mes)
+						irradiations.push(irradiation)
+						temperatures.push(temperature)
+						windSpeeds.push(windSpeed)
+						rainfalls.push(rainfall)
+						year = ano
+
+					}
+				})
+
+				let items = {
+					yearInterval,
+					irradiations,
+					temperatures,
+					windSpeeds,
+					rainfalls,
+					year,
+					period: "year"
+				}
+
+				resolve(items)
+
+			}
+		})
+
+	})
+
+}
+
 module.exports = { IreceEnvironmentalServices }

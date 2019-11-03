@@ -15,7 +15,6 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 				KeyConditionExpression: "dia_mes_ano = :inicio_data",
 				ExpressionAttributeValues: {
 					":inicio_data": parseInt(year + month + day),
-					// ":inicio_data": 20190721
 				}
 			}
 		}
@@ -27,6 +26,17 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 				ProjectionExpression: "dia_mes_ano, hora_minuto, avg_radSNP1_difusa, avg_radSNP1_glob, avg_radsol_I, dir_vento, irradiancia_2_avg, irradiancia_avg, prec_chuva_tot, press_atm_avg, temp_ar_avg, umi_ar_avg, vel_vento",
 				ExpressionAttributeValues: {
 					":inicio": parseInt(year + month + day)
+				}
+			}
+		}
+
+		else if (type == 'environmental-year') {
+			params = {
+				TableName: "ambientais_ifba_anual",
+				KeyConditionExpression: "ano = :inicio",
+				ProjectionExpression: "ano, mes, irradiation, rainfall, temperature, windSpeed",
+				ExpressionAttributeValues: {
+					":inicio": parseInt(year)
 				}
 			}
 		}
@@ -97,8 +107,6 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 		}
 
 	}
-
-	// console.log(params)
 
 	return params
 
