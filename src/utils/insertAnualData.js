@@ -473,6 +473,254 @@ const resolveMonthData = async (date) => {
 
 }
 
+// Irece Production (tables 1 to 5)
+
+const resolveMonthData = (date, tableNumber) => {
+    let ano = parseInt(date[0] + date[1] + date[2] + date[3])
+    let mes = date[4] + date[5]
+
+    IreceProductionServices.readForOneMonth(date, tableNumber)
+        .then(response => {
+            let {
+                averages,
+                capacityFactor,
+                productions,
+                performances,
+                performanceRatioComparison
+            } = response
+
+            //averageProduction
+            let hasAverageProduciton = averages.length
+            let effectiveAverageProduction = (hasAverageProduciton)
+                ? averages.filter(item => item != "null" && !isNaN(item))
+                : [0]
+            let averagesSum = (hasAverageProduciton)
+                ? effectiveAverageProduction.reduce((acc, cur) => acc + parseFloat(cur))
+                : 0
+            let averageProduction = parseFloat((averagesSum / effectiveAverageProduction.length).toFixed(3))
+
+            //capacityFactorAverage
+            let hasCapacityFactor = capacityFactor.length
+            let effectiveCapacityFactor = (hasCapacityFactor)
+                ? capacityFactor.filter(item => item != 'null' && !isNaN(item))
+                : [0]
+            let capacityFactorSum = (hasCapacityFactor)
+                ? effectiveCapacityFactor.reduce((acc, cur) => acc + parseFloat(cur))
+                : 0
+            let capacityFactorAverage = parseFloat((capacityFactorSum / effectiveCapacityFactor.length).toFixed(3))
+
+            //higherAverage
+            let higherAverage = max(effectiveCapacityFactor)
+
+            //higherAverageDay
+            let higherAverageDay = capacityFactor.indexOf(higherAverage)
+
+            //performancesAverage
+            let hasPerformances = performances.length
+            let effectivePerformances = (hasPerformances)
+                ? performances.filter(item => item != 'null' && !isNaN(item) && item != 0 && item != Infinity)
+				: [0]
+				
+            let performancesSum = (effectivePerformances.length != 0)
+                ? effectivePerformances.reduce((acc, cur) => acc + parseFloat(cur))
+                : 0
+			let performancesAverage = parseFloat((performancesSum / (effectivePerformances.length != 0 ? effectivePerformances.length : 1)).toFixed(3))
+
+            //totalProductionAverage
+            let hasProductions = productions.length
+            let effectiveProductions = (hasProductions)
+                ? productions.filter(item => item != 'null' && !isNaN(item) && item != 0)
+                : [0]
+            let productionsSum = (effectiveProductions.length != 0)
+                ? effectiveProductions.reduce((acc, cur) => acc + parseFloat(cur))
+                : 0
+            let totalProductionAverage = parseFloat((productionsSum / (effectiveProductions.length != 0 ? effectiveProductions.length : 1)).toFixed(3))
+
+            let params = {
+                TableName: `inversor_${tableNumber}_irece_anual`,
+                Item: {
+                    ano,
+                    mes,
+                    averageProduction,
+                    capacityFactorAverage,
+                    higherAverage,
+                    higherAverageDay,
+                    performancesAverage,
+                    totalProductionAverage,
+                }
+			}
+			
+            docClient.put(params, (err, data) => {
+                if (err) {
+                    console.log(err)
+                } else {
+                    console.log("put item: ", params.Item)
+                }
+            })
+
+        })
+        .catch(err => {
+            console.log(err)
+        })
+}
+
+// Irece Production (total)
+
+const resolveMonthData = (date, tableNumber) => {
+    let ano = parseInt(date[0] + date[1] + date[2] + date[3])
+    let mes = date[4] + date[5]
+
+    IreceProductionServices.readForOneMonth(date, tableNumber)
+        .then(response => {
+            let {
+				table1,
+				table2,
+				table3,
+				table4,
+				table5,
+				table6
+            } = response
+
+			// Table 2
+			let hasTable1 = (table1.length != 0 && table1.length != 'null')
+			let effectiveTable1 = (hasTable1)
+				? table1.filter(item => item != undefined && item != Infinity && item != 'null' != item != 0)
+				: [0]
+			let hasEffectiveTable1 = (effectiveTable1.length != 0 && effectiveTable1.length != 'null')
+			let table1Sum = (hasEffectiveTable1)
+				? effectiveTable1.reduce((acc, cur) => acc + parseFloat(cur))
+				: 0
+			let table1Average = parseFloat((table1Sum / (effectiveTable1.length != 0 ? effectiveTable1.length : 1)).toFixed(3))
+			
+			let higherProductionTable1 = max(effectiveTable1)
+			let higherProductionTable1Day = table1.indexOf(higherProductionTable1) + 1
+
+			// Table2
+			let hasTable2 = (table2.length != 0 && table2.length != 'null')
+			let effectiveTable2 = (hasTable2)
+				? table2.filter(item => item != undefined && item != Infinity && item != 'null' != item != 0)
+				: [0]
+			let hasEffectiveTable2 = (effectiveTable2.length != 0 && effectiveTable2.length != 'null')
+			let table2Sum = (hasEffectiveTable2)
+				? effectiveTable2.reduce((acc, cur) => acc + parseFloat(cur))
+				: 0
+			let table2Average = parseFloat((table2Sum / (effectiveTable2.length != 0 ? effectiveTable2.length : 1)).toFixed(3))
+			
+			let higherProductionTable2 = max(effectiveTable2)
+			let higherProductionTable2Day = table2.indexOf(higherProductionTable2) + 1
+
+			// Table3
+			let hasTable3 = (table3.length != 0 && table3.length != 'null')
+			let effectiveTable3 = (hasTable3)
+				? table3.filter(item => item != undefined && item != Infinity && item != 'null' != item != 0)
+				: [0]
+			let hasEffectiveTable3 = (effectiveTable3.length != 0 && effectiveTable3.length != 'null')
+			let table3Sum = (hasEffectiveTable3)
+				? effectiveTable3.reduce((acc, cur) => acc + parseFloat(cur))
+				: 0
+			let table3Average = parseFloat((table3Sum / (effectiveTable3.length != 0 ? effectiveTable3.length : 1)).toFixed(3))
+			
+			let higherProductionTable3 = max(effectiveTable3)
+			let higherProductionTable3Day = table3.indexOf(higherProductionTable3) + 1
+
+			// Table4
+			let hasTable4 = (table4.length != 0 && table4.length != 'null')
+			let effectiveTable4 = (hasTable4)
+				? table4.filter(item => item != undefined && item != Infinity && item != 'null' != item != 0)
+				: [0]
+			let hasEffectiveTable4 = (effectiveTable4.length != 0 && effectiveTable4.length != 'null')
+			let table4Sum = (hasEffectiveTable4)
+				? effectiveTable4.reduce((acc, cur) => acc + parseFloat(cur))
+				: 0
+			let table4Average = parseFloat((table4Sum / (effectiveTable4.length != 0 ? effectiveTable4.length : 1)).toFixed(3))
+			
+			let higherProductionTable4 = max(effectiveTable4)
+			let higherProductionTable4Day = table4.indexOf(higherProductionTable4) + 1
+
+			
+			// Table5
+			let hasTable5 = (table5.length != 0 && table5.length != 'null')
+			let effectiveTable5 = (hasTable5)
+				? table5.filter(item => item != undefined && item != Infinity && item != 'null' != item != 0)
+				: [0]
+			let hasEffectiveTable5 = (effectiveTable5.length != 0 && effectiveTable5.length != 'null')
+			let table5Sum = (hasEffectiveTable5)
+				? effectiveTable5.reduce((acc, cur) => acc + parseFloat(cur))
+				: 0
+			let table5Average = parseFloat((table5Sum / (effectiveTable5.length != 0 ? effectiveTable5.length : 1)).toFixed(3))
+			
+			let higherProductionTable5 = max(effectiveTable5)
+			let higherProductionTable5Day = table5.indexOf(higherProductionTable5) + 1
+
+			// Table6
+			let hasTable6 = (table6.length != 0 && table6.length != 'null')
+			let effectiveTable6 = (hasTable6)
+				? table6.filter(item => item != undefined && item != Infinity && item != 'null' != item != 0)
+				: [0]
+			let hasEffectiveTable6 = (effectiveTable6.length != 0 && effectiveTable6.length != 'null')
+			let table6Sum = (hasEffectiveTable6)
+				? effectiveTable6.reduce((acc, cur) => acc + parseFloat(cur))
+				: 0
+			let table6Average = parseFloat((table6Sum / (effectiveTable6.length != 0 ? effectiveTable6.length : 1)).toFixed(3))
+			
+			let higherProductionTable6 = max(effectiveTable6)
+			let higherProductionTable6Day = table6.indexOf(higherProductionTable6) + 1
+
+
+            let params = {
+                TableName: `inversor_${tableNumber}_irece_anual`,
+                Item: {
+                    ano,
+                    mes,
+                    table1: {
+						averageProduction: table1Average,
+						higherAverageProduction: higherProductionTable1,
+						higherAverageProductionDay: higherProductionTable1Day
+					},
+					table2: {
+						averageProduction: table2Average,
+						higherAverageProduction: higherProductionTable2,
+						higherAverageProductionDay: higherProductionTable2Day
+					},
+					table3: {
+						averageProduction: table3Average,
+						higherAverageProduction: higherProductionTable3,
+						higherAverageProductionDay: higherProductionTable3Day
+					},
+					table4: {
+						averageProduction: table4Average,
+						higherAverageProduction: higherProductionTable4,
+						higherAverageProductionDay: higherProductionTable4Day
+					},
+					table5: {
+						averageProduction: table5Average,
+						higherAverageProduction: higherProductionTable5,
+						higherAverageProductionDay: higherProductionTable5Day
+					},
+					table6: {
+						averageProduction: table6Average,
+						higherAverageProduction: higherProductionTable6,
+						higherAverageProductionDay: higherProductionTable6Day
+					}
+                }
+			}
+
+			// console.log(params.Item)
+			
+            docClient.put(params, (err, data) => {
+                if (err) {
+                    console.log(err)
+                } else {
+                    console.log("put item: ", params.Item)
+                }
+            })
+
+        })
+        .catch(err => {
+            console.log(err)
+        })
+}
+
 let date = {
     year: '2018',
     month: '05',

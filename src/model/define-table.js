@@ -10,11 +10,31 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 	if (ufv == 'irece') {
 		if (type == 'production') {
 			params = {
-				TableName: "inversor_" + tablenumber + "_irece",
+				TableName: `inversor_${tablenumber}_irece`,
 				ProjectionExpression: "dia_mes_ano, hora_minuto, P_AC, I_AC, I_DC, V_AC, V_DC",
 				KeyConditionExpression: "dia_mes_ano = :inicio_data",
 				ExpressionAttributeValues: {
 					":inicio_data": parseInt(year + month + day),
+				}
+			}
+		} else if (type == 'production-year') {
+			if (tablenumber <= 5) {
+				params = {
+					TableName: `inversor_${tablenumber}_irece_anual`,
+					ProjectionExpression: "ano, mes, averageProduction, capacityFactorAverage, higherAverage, higherAverageDay, performancesAverage, totalProductionAverage",
+					KeyConditionExpression: "ano = :inicio_data",
+					ExpressionAttributeValues: {
+						":inicio_data": parseInt(year),
+					}
+				}
+			} else if (tablenumber == 6) {
+				params = {
+					TableName: `inversor_${tablenumber}_irece_anual`,
+					ProjectionExpression: "ano, mes, table1, table2, table3, table4, table5, table6",
+					KeyConditionExpression: "ano = :inicio_data",
+					ExpressionAttributeValues: {
+						":inicio_data": parseInt(year),
+					}
 				}
 			}
 		}

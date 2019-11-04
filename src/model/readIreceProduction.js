@@ -542,4 +542,120 @@ IreceProductionServices.readForOneMonth = async (date, table) => {
 
 }
 
+IreceProductionServices.readForOneYear = async (date, table) => {
+	
+	let dateToRequest = {
+		year: date[0] + date[1] + date[2] + date[3],
+		month: date[4] + date[5],
+		day: date[6] + date[7]
+	}
+
+	let params = tableDefiner.defineTable
+		(
+			'irece',
+			'production-year',
+			table,
+			dateToRequest.day,
+			dateToRequest.month,
+			dateToRequest.year,
+			null
+		)
+
+	if (table <= 5) {
+
+		let averageProductions = []
+		let capacityFactorAverages = []
+		let higherAverages = []
+		let higherAverageDays = []
+		let performancesAverages = []
+		let totalProductionAverages = []
+		let yearInterval = []
+		
+		return new Promise((resolve, reject) => {
+			docClient.query(params, (err, data) => {
+				if (err) {
+					console.length(err)
+					reject({ err })
+				} else {
+					data.Items.forEach(item => {
+						if (typeof data.Items != undefined) {
+							
+							averageProductions.push(item.averageProduction)
+							capacityFactorAverages.push(item.capacityFactorAverage)
+							higherAverages.push(item.higherAverage)
+							higherAverageDays.push(item.higherAverageDay)
+							performancesAverages.push(item.performancesAverage)
+							totalProductionAverages.push(item.totalProductionAverage)
+							yearInterval.push(item.mes)
+
+						}
+					})
+
+					let items = {
+						averageProductions,
+						capacityFactorAverages,
+						higherAverages,
+						higherAverageDays,
+						performancesAverages,
+						totalProductionAverages,
+						yearInterval,
+						year: dateToRequest.year,
+						period: "year"
+					}
+
+					resolve(items)
+				}	
+			})
+
+		})
+
+	} else if (table == 6) {
+
+		let table1 = []
+		let table2 = []
+		let table3 = []
+		let table4 = []
+		let table5 = []
+		let table6 = []
+		let yearInterval = []
+
+		return new Promise((resolve, reject) => {
+			docClient.query(params, (err, data) => {
+				if (err) {
+					console.log(err)
+					reject({ err })
+				} else {
+					data.Items.forEach(item => {
+						if (typeof data.Items != undefined) {
+							table1.push(item.table1)
+							table2.push(item.table2)
+							table3.push(item.table3)
+							table4.push(item.table4)
+							table5.push(item.table5)
+							table6.push(item.table6)
+							yearInterval.push(item.mes)
+						}
+					})
+
+					let items = {
+						table1,
+						table2,
+						table3,
+						table4,
+						table5,
+						table6,
+						yearInterval,
+						year: dateToRequest.year,
+						period: "year"
+					}
+
+					resolve(items)
+				}
+			})
+		})
+
+	}
+
+}
+
 module.exports = { IreceProductionServices }
