@@ -324,4 +324,97 @@ IreceLossesServices.readForOneMonth = async (table, date) => {
     } else return "This table does not exist."
 }
 
+IreceLossesServices.readForOneYear = async (table, date) => {
+	
+	let lossesPerMonth = []
+	let realProdPerMonth = []
+	let idealProdPerMonth = []
+	let viabilityPercentagePerMonth = []
+
+	let dateToRequest = {
+		year: date[0] + date[1] + date[2] + date[3],
+		month: date[4] + date[5],
+		day: date[6] + date[7]
+	}
+
+	let months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+
+	if (table < 6 && table > 0) {
+		months.map(month => {
+			let dateToQuery = dateToRequest.year + month + dateToRequest.day
+			IreceLossesServices.readForOneMonth(table, dateToQuery)
+				.then(response => {
+					
+					let {
+						loss, //total, dia com mais perdas
+						realProd, // media
+						idealProd, // media -> comparar medias com realProd (mesmo grafico)
+						viability, // porcentagem de dias com viabilidade true
+						lossPercentage, // total, dia com mais perdas
+						comparation, // perdas, campo [1]
+						month, 
+						year
+					} = response
+
+					// Loss
+					let hasLoss = (loss.length != 0 && loss.length != undefined)
+					let effectiveLosses = (hasLoss)
+						? loss.filter(item => item != 0 && !isNaN(item) && item != undefined && item != 'null')
+						: [0]
+					let hasEffectiveLosses = (effectiveLosses.length != 0 && effectiveLosses.length != undefined)
+					let totalLossesThisMonth = (hasEffectiveLosses)
+						? loss.reduce((acc, cur) => acc + parseFloat(cur))
+						: 0
+					let higherLossThisMonth = (hasEffectiveLosses)
+						? max(effectiveLosses)
+						: 'null'
+					let dayOfHigherLossThisMonth = (hasEffectiveLosses)
+						? loss.indexOf(higherLossThisMonth) + 1
+						: 'null'
+					
+					// realProd
+					let hasRealProd = (realProd.length != 0 && realProd.length != undefined)
+					let effectiveRealProd = (hasRealProd)
+						? realProd.filter(item => item != 0 && !isNaN(item) && item != undefined && item != 'null')
+						: [0]
+					let hasEffectiveRealProd = (effectiveRealProd.length != 0 && effectiveRealProd.length != undefined)
+					let totalEffectiveRealProd = (hasEffectiveRealProd)
+						? effectiveRealProd.reduce((acc, cur) => acc + parseFloat(cur))
+						: 0
+					let averageRealProdThisMonth = parseFloat(( totalEffectiveRealProd / (hasEffectiveRealProd ? effectiveRealProd.length : 1) ).toFixed(3))
+					
+					// idealProd
+					let hasIdealProd = (idealProd.length != 0 && idealProd.length != undefined)
+					let effectiveIdealProd = (hasIdealProd)
+						? idealProd.filter(item => item != 0 && !isNaN(item) && item != undefined && item != 'null')
+						: [0]
+					let hasEffectiveIdealProd = (effectiveIdealProd.length != 0 && effectiveIdealProd.length != undefined)
+					let totalEffectiveIdealProd = (hasEffectiveIdealProd)
+						? effectiveIdealProd.reduce((acc, cur) => acc + parseFloat(cur))
+						: 0
+					let averageIdealProdThisMonth = parseFloat(( totalEffectiveIdealProd / (hasEffectiveIdealProd ? effectiveIdealProd.length : 1) ).toFixed(3))
+					
+					//viability
+					let hasViability = (viability.length != 0 && viability.length != undefined)
+					let arrayOfTrueViabiities = (hasViability)
+						? viability.filter(item => item == "true")
+						: [0]
+					let arrayOfFalseViabiities = (hasViability)
+						? viability.filter(item => item == "false")
+						: [0]
+					let truePercentage = parseFloat((arrayOfTrueViabiities.length / (hasViability) ? viability.length : 1).toFixed(2))
+					let falsePercentage = parseFloat((arrayOfFalseViabiities.length / (hasViability) ? viability.length : 1).toFixed(2))
+
+
+				})
+				.catch(err => {
+	
+				})
+		})
+	} else {
+		return "table 6"
+	}
+
+}
+
 module.exports = { IreceLossesServices }
