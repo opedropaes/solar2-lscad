@@ -188,7 +188,7 @@ const getQuarterValues = (data, dates) => {
 			let minute = dates[i][3] + dates[i][4]
 			irradiationSumPerMinute += parseFloat(data.irradiations[i])
 			irradiationQuantity++
-			
+
 			if (minute % 15 == 0) {
 
 				interval.push(dates[i])
@@ -368,7 +368,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 				let southEast = 0
 
 				windDirections.map(direction => {
-					if (direction === "N") 
+					if (direction === "N")
 						north++
 					else if (direction === "NE")
 						northEast++
@@ -383,7 +383,7 @@ CampoGrandeEnvironmentalServices.readForOneDay = async (date) => {
 					else if (direction === "W")
 						west++
 					else if (direction === "NW")
-						northWest++	
+						northWest++
 				})
 
 				let eachWindDirectionPercentage = {
@@ -610,6 +610,76 @@ CampoGrandeEnvironmentalServices.readForOneMonth = async (date) => {
 
 				})
 		})
+	})
+
+}
+
+CampoGrandeEnvironmentalServices.readForOneYear = async (date) => {
+	
+	let irradiations = []
+	let PM1Array = []
+	let PM2Array = []
+	let rainfalls = []
+	let temperatures = []
+	let windSpeeds = []
+	let yearInterval = []
+
+	let dateToRequest = {
+		year: date[0] + date[1] + date[2] + date[3],
+		month: date[4] + date[5],
+		day: date[6] + date[7]
+	}
+
+	return new Promise((resolve, reject) => {
+		let params = tableDefiner.defineTable
+			(
+				'campo-grande',
+				'environmental-year',
+				null,
+				dateToRequest.day,
+				dateToRequest.month,
+				dateToRequest.year,
+				null
+			)
+
+		docClient.query(params, (err, data) => {
+			if (err) {
+				console.log(err);
+				resolve({ err })
+			} else {
+				data.Items.forEach(item => {
+					if (typeof data.Items != 'undefined') {
+						
+						let { ano, mes, irradiation, temperature, windSpeed, rainfall, PM1, PM2 } = item
+						
+						yearInterval.push(mes)
+						irradiations.push(irradiation)
+						temperatures.push(temperature)
+						windSpeeds.push(windSpeed)
+						rainfalls.push(rainfall)
+						PM1Array.push(PM1)
+						PM2Array.push(PM2)
+						
+					}
+				})
+
+				let items = {
+					yearInterval,
+					irradiations,
+					temperatures,
+					windSpeeds,
+					rainfalls,
+					PM1Array,
+					PM2Array,
+					year: dateToRequest.year,
+					period: "year"
+				}
+
+				resolve(items)
+
+			}
+		})
+
 	})
 
 }

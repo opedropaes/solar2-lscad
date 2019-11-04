@@ -10,12 +10,31 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 	if (ufv == 'irece') {
 		if (type == 'production') {
 			params = {
-				TableName: "inversor_" + tablenumber + "_irece",
+				TableName: `inversor_${tablenumber}_irece`,
 				ProjectionExpression: "dia_mes_ano, hora_minuto, P_AC, I_AC, I_DC, V_AC, V_DC",
 				KeyConditionExpression: "dia_mes_ano = :inicio_data",
 				ExpressionAttributeValues: {
 					":inicio_data": parseInt(year + month + day),
-					// ":inicio_data": 20190721
+				}
+			}
+		} else if (type == 'production-year') {
+			if (tablenumber <= 5) {
+				params = {
+					TableName: `inversor_${tablenumber}_irece_anual`,
+					ProjectionExpression: "ano, mes, averageProduction, capacityFactorAverage, higherAverage, higherAverageDay, performancesAverage, totalProductionAverage",
+					KeyConditionExpression: "ano = :inicio_data",
+					ExpressionAttributeValues: {
+						":inicio_data": parseInt(year),
+					}
+				}
+			} else if (tablenumber == 6) {
+				params = {
+					TableName: `inversor_${tablenumber}_irece_anual`,
+					ProjectionExpression: "ano, mes, table1, table2, table3, table4, table5, table6",
+					KeyConditionExpression: "ano = :inicio_data",
+					ExpressionAttributeValues: {
+						":inicio_data": parseInt(year),
+					}
 				}
 			}
 		}
@@ -27,6 +46,17 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 				ProjectionExpression: "dia_mes_ano, hora_minuto, avg_radSNP1_difusa, avg_radSNP1_glob, avg_radsol_I, dir_vento, irradiancia_2_avg, irradiancia_avg, prec_chuva_tot, press_atm_avg, temp_ar_avg, umi_ar_avg, vel_vento",
 				ExpressionAttributeValues: {
 					":inicio": parseInt(year + month + day)
+				}
+			}
+		}
+
+		else if (type == 'environmental-year') {
+			params = {
+				TableName: "ambientais_ifba_anual",
+				KeyConditionExpression: "ano = :inicio",
+				ProjectionExpression: "ano, mes, irradiation, rainfall, temperature, windSpeed",
+				ExpressionAttributeValues: {
+					":inicio": parseInt(year)
 				}
 			}
 		}
@@ -59,6 +89,17 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 				}
 			}
 		}
+		
+		else if (type == 'production-year') {
+			params = {
+				TableName: "inversor_1_ufms_anual",
+				ProjectionExpression: "ano, mes, averageProduction, capacityFactorAverage, higherAverage, higherAverageDay, performancesAverage, totalProductionAverage",
+				KeyConditionExpression: "ano = :inicio_data",
+				ExpressionAttributeValues: {
+					":inicio_data": parseInt(year),
+				}
+			}
+		}
 
 		else if (type == 'environmental') {
 			params = {
@@ -74,9 +115,18 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 			}
 		}
 
-	}
+		else if (type == 'environmental-year') {
+			params = {
+				TableName: "ambientais_ufms_anual",
+				ProjectionExpression: "ano, mes, temperature, irradiation, windSpeed, rainfall, PM1, PM2",
+				KeyConditionExpression: "ano = :inicio",
+				ExpressionAttributeValues: {
+					":inicio": parseInt(year)
+				}
+			}
+		}
 
-	// console.log(params)
+	}
 
 	return params
 

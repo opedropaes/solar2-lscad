@@ -19,7 +19,15 @@ server.get('/irece/ambientais/:date/:period', (req, res, next) => {
         .catch((err) => {
             res.send(404, err)
         })
-	}
+    } else if (req.params.period == 'year') {
+        service.readForOneYear(req.params.date)
+            .then((responseData) => {
+                res.send(200, responseData)
+            })
+            .catch((err) => {
+                res.send(404, err)
+            })
+    }
 
     next()
 

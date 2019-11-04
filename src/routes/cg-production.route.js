@@ -3,7 +3,7 @@ const service = require('../model/readCGProduction').CampoGrandeProductionServic
 
 const respond = async (req, res, next) => {
     
-    if (req.params.period == 'day') {
+    if (req.params.period === 'day') {
 		service.readForOneDay(req.params.date)
         .then((responseData) => {
             res.send(200, responseData)
@@ -11,7 +11,7 @@ const respond = async (req, res, next) => {
         .catch((err) => {
             res.send(404, err)
         })
-	} else if (req.params.period == 'month') {
+	} else if (req.params.period === 'month') {
 		service.readForOneMonth(req.params.date)
         .then((responseData) => {
             res.send(200, responseData)
@@ -19,7 +19,15 @@ const respond = async (req, res, next) => {
         .catch((err) => {
             res.send(404, err)
         })
-	}
+	} else if (req.params.period === 'year') {
+        service.readForOneYear(req.params.date)
+            .then(responseData => {
+                res.send(200, responseData)
+            })
+            .catch(err => {
+                req.send(404, err)
+            })
+    }
     
     next()
 
