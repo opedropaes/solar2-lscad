@@ -22,5 +22,5 @@ server.get('/irece/perdas/mesas/:table/:date/:period', (req, res, next) => {
 	}
 
     next()
-    
+  
 })
