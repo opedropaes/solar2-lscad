@@ -592,6 +592,7 @@ IreceProductionServices.readForOneYear = async (date, table) => {
 					})
 
 					let items = {
+						table,
 						averageProductions,
 						capacityFactorAverages,
 						higherAverages,
@@ -638,6 +639,7 @@ IreceProductionServices.readForOneYear = async (date, table) => {
 					})
 
 					let items = {
+						table,
 						table1,
 						table2,
 						table3,
