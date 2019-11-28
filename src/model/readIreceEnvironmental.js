@@ -228,7 +228,7 @@ IreceEnvironmentalServices.readForOneDay = async (date) => {
 				temperature: [0],
 				atmPressure: [0],
 				solarRadiation: [0],
-				averageRadiation: [0],
+				averageRadiation: 0,
 				averageIrradiation: 0,
 				higherIrradiation: 0,
 				averageTemperature: 0,

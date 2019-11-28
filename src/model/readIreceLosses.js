@@ -370,8 +370,6 @@ IreceLossesServices.readForOneYear = async (table, date) => {
 		months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
 	}
 
-	console.log(months)
-
 	if (table < 6 && table > 0) {
 		return new Promise((resolve, reject) => {
 			months.map(month => {
@@ -490,15 +488,15 @@ IreceLossesServices.readForOneYear = async (table, date) => {
 									values: averagesIdealProd
 								},
 								trueViabilities: {
-									type: "percentage",
+									type: "%",
 									values: trueViabilities
 								},
 								falseViabilities: {
-									type: "percentage",
+									type: "%",
 									values: falseViabilities
 								},
 								totalLossPercentages: {
-									type: "percentage",
+									type: "%",
 									values: totalLossPercentages
 								},
 								period: "year"
