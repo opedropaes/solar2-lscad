@@ -1,3 +1,11 @@
+const CampoGrandeEnvironmentalServices = require('../model/readCGEnvironmental').CampoGrandeEnvironmentalServices;
+const CampoGrandeProductionServices = require('../model/readCGProduction').CampoGrandeProductionServices;
+const IreceEnvironmentalServices = require('../model/readIreceEnvironmental').IreceEnvironmentalServices;
+const IreceProductionServices = require('../model/readIreceProduction').IreceProductionServices;
+const AWSConfig = require('../config/config');
+const docClient = AWSConfig.docClient;
+
+
 // max
 const max = (array) => {
     let max = 0
@@ -9,7 +17,7 @@ const max = (array) => {
 
 // Campo Grande Environmental
 
-const resolveMonthData = (date) => {
+const CGEResolveMonthData = async (date) => {
 
     CampoGrandeEnvironmentalServices.readForOneMonth(date)
         .then(response => {
@@ -209,8 +217,6 @@ const resolveMonthData = (date) => {
                 }
             }
 
-            // console.log(items)
-
             let params = {
                 TableName: "ambientais_ufms_anual",
                 Item: items
@@ -233,7 +239,7 @@ const resolveMonthData = (date) => {
 
 // Campo Grande Production
 
-const resolveMonth = (date) => {
+const CGPresolveMonth = async (date) => {
     let ano = parseInt(date[0] + date[1] + date[2] + date[3])
     let mes = date[4] + date[5]
 
@@ -244,7 +250,6 @@ const resolveMonth = (date) => {
                 capacityFactor,
                 productions,
                 performances,
-                performanceRatioComparison
             } = response
 
             //averageProduction
@@ -304,6 +309,7 @@ const resolveMonth = (date) => {
                     higherAverageDay,
                     performancesAverage,
                     totalProductionAverage,
+                    productionsSum
                 }
             }
 
@@ -323,7 +329,7 @@ const resolveMonth = (date) => {
 
 // Irece Environmental
 
-const resolveMonthData = async (date) => {
+const IEresolveMonthData = async (date) => {
 
     IreceEnvironmentalServices.readForOneMonth(date)
         .then(response => {
@@ -475,7 +481,7 @@ const resolveMonthData = async (date) => {
 
 // Irece Production (tables 1 to 5)
 
-const resolveMonthData = (date, tableNumber) => {
+const IPResolveMonthData = async (date, tableNumber) => {
     let ano = parseInt(date[0] + date[1] + date[2] + date[3])
     let mes = date[4] + date[5]
 
@@ -547,6 +553,7 @@ const resolveMonthData = (date, tableNumber) => {
                     higherAverageDay,
                     performancesAverage,
                     totalProductionAverage,
+                    productionsSum
                 }
 			}
 			
@@ -566,7 +573,7 @@ const resolveMonthData = (date, tableNumber) => {
 
 // Irece Production (total)
 
-const resolveMonthData = (date, tableNumber) => {
+const IPTotalResolveMonthData = async (date, tableNumber) => {
     let ano = parseInt(date[0] + date[1] + date[2] + date[3])
     let mes = date[4] + date[5]
 
@@ -664,7 +671,9 @@ const resolveMonthData = (date, tableNumber) => {
 			let table6Average = parseFloat((table6Sum / (effectiveTable6.length != 0 ? effectiveTable6.length : 1)).toFixed(3))
 			
 			let higherProductionTable6 = max(effectiveTable6)
-			let higherProductionTable6Day = table6.indexOf(higherProductionTable6) + 1
+            let higherProductionTable6Day = table6.indexOf(higherProductionTable6) + 1
+            
+            let total = parseFloat(table1Sum) + parseFloat(table2Sum) + parseFloat(table3Sum) + parseFloat(table4Sum) + parseFloat(table5Sum)
 
 
             let params = {
@@ -698,6 +707,7 @@ const resolveMonthData = (date, tableNumber) => {
 						higherAverageProductionDay: higherProductionTable5Day
 					},
 					table6: {
+                        total,
 						averageProduction: table6Average,
 						higherAverageProduction: higherProductionTable6,
 						higherAverageProductionDay: higherProductionTable6Day
@@ -722,19 +732,20 @@ const resolveMonthData = (date, tableNumber) => {
 }
 
 let date = {
-    year: '2018',
-    month: '05',
+    year: '2017',
+    month: '06',
     day: '01'
 }
 
 const interval = setInterval(async () => {
-    if (date.year + date.month < '201911' && date.month < 12) {
-        await resolveMonthData(date.year + date.month + date.day)
+
+    if (date.year + date.month < '201912' && date.month < 12) {
+        // await IPTotalResolveMonthData(date.year + date.month + date.day, 6)
         date.month = parseInt(date.month)
         date.month++
         date.month = (date.month >= 10) ? date.month : ('0' + date.month).slice(-2)
-    } else if (date.year + date.month < '201911' && date.month == 12) {
-        await resolveMonthData(date.year + date.month + date.day)
+    } else if (date.year + date.month < '201912' && date.month == 12) {
+        // await IPTotalResolveMonthData(date.year + date.month + date.day, 6)
         date.year = parseInt(date.year)
         date.year++
         date.year = JSON.stringify(date.year)

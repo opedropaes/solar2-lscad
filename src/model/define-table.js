@@ -21,7 +21,7 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 			if (tablenumber <= 5) {
 				params = {
 					TableName: `inversor_${tablenumber}_irece_anual`,
-					ProjectionExpression: "ano, mes, averageProduction, capacityFactorAverage, higherAverage, higherAverageDay, performancesAverage, totalProductionAverage",
+					ProjectionExpression: "ano, mes, averageProduction, capacityFactorAverage, higherAverage, higherAverageDay, performancesAverage, totalProductionAverage, productionsSum",
 					KeyConditionExpression: "ano = :inicio_data",
 					ExpressionAttributeValues: {
 						":inicio_data": parseInt(year),
@@ -93,7 +93,7 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 		else if (type == 'production-year') {
 			params = {
 				TableName: "inversor_1_ufms_anual",
-				ProjectionExpression: "ano, mes, averageProduction, capacityFactorAverage, higherAverage, higherAverageDay, performancesAverage, totalProductionAverage",
+				ProjectionExpression: "ano, mes, averageProduction, capacityFactorAverage, higherAverage, higherAverageDay, performancesAverage, totalProductionAverage, productionsSum",
 				KeyConditionExpression: "ano = :inicio_data",
 				ExpressionAttributeValues: {
 					":inicio_data": parseInt(year),

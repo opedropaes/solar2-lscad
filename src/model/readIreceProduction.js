@@ -570,6 +570,7 @@ IreceProductionServices.readForOneYear = async (date, table) => {
 		let performancesAverages = []
 		let totalProductionAverages = []
 		let yearInterval = []
+		let productionsSum = []
 		
 		return new Promise((resolve, reject) => {
 			docClient.query(params, (err, data) => {
@@ -586,6 +587,7 @@ IreceProductionServices.readForOneYear = async (date, table) => {
 							higherAverageDays.push(item.higherAverageDay)
 							performancesAverages.push(item.performancesAverage)
 							totalProductionAverages.push(item.totalProductionAverage)
+							productionsSum.push(item.productionsSum)
 							yearInterval.push(item.mes)
 
 						}
@@ -599,6 +601,7 @@ IreceProductionServices.readForOneYear = async (date, table) => {
 						higherAverageDays,
 						performancesAverages,
 						totalProductionAverages,
+						productionsSum,
 						yearInterval,
 						year: dateToRequest.year,
 						period: "year"

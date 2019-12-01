@@ -172,8 +172,25 @@ const readLosses = async (table, date) => {
 
 			})
 			.catch((err) => {
-				reject(err)
-			})
+				let items = {
+					err,
+					table,
+					period: "month",
+					loss: [0],
+					interval: [0],
+					realProd: [0],
+					idealProd: [0],
+					viability: [0],
+					year: dateToRequest.year,
+					month: dateToRequest.month,
+					completeDates: [0],
+					lossPercentage: [0],
+					yearMonth: dateToRequest.month + "/" + dateToRequest.year,
+					comparation: [0, 0],
+					comparationLabels: ['Produção total', 'Perdas']
+				}
+
+				resolve(items)			})
 
 	})
 }

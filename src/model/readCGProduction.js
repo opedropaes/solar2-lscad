@@ -412,6 +412,7 @@ CampoGrandeProductionServices.readForOneYear = async (date) => {
 	let higherAverageDays = []
 	let performancesAverages = []
 	let totalProductionAverages = []
+	let productionsSum = []
 	let yearInterval = []
 
 	let dateToRequest = {
@@ -444,6 +445,7 @@ CampoGrandeProductionServices.readForOneYear = async (date) => {
 						let higherAverage = parseFloat((item.higherAverage).toFixed(3))
 						let performancesAverage = parseFloat((item.performancesAverage).toFixed(3))
 						let totalProductionAverage = parseFloat((item.totalProductionAverage).toFixed(3))
+						let productionsSumUnit = parseFloat((item.productionsSum).toFixed(3))
 						let { higherAverageDay } = item
 						let { mes } = item
 
@@ -453,6 +455,7 @@ CampoGrandeProductionServices.readForOneYear = async (date) => {
 						higherAverageDays.push(higherAverageDay)
 						performancesAverages.push(performancesAverage)
 						totalProductionAverages.push(totalProductionAverage)
+						productionsSum.push(productionsSumUnit)
 						yearInterval.push(mes)
 					}
 				})
@@ -464,6 +467,7 @@ CampoGrandeProductionServices.readForOneYear = async (date) => {
 					higherAverageDays,
 					performancesAverages,
 					totalProductionAverages,
+					productionsSum,
 					yearInterval,
 					year: dateToRequest.year,
 					period: "year"
