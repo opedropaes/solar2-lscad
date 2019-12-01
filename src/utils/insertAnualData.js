@@ -682,26 +682,31 @@ const IPTotalResolveMonthData = async (date, tableNumber) => {
                     ano,
                     mes,
                     table1: {
+                        total: table1Sum,
 						averageProduction: table1Average,
 						higherAverageProduction: higherProductionTable1,
 						higherAverageProductionDay: higherProductionTable1Day
 					},
 					table2: {
+                        total: table2Sum,
 						averageProduction: table2Average,
 						higherAverageProduction: higherProductionTable2,
 						higherAverageProductionDay: higherProductionTable2Day
 					},
 					table3: {
+                        total: table3Sum,
 						averageProduction: table3Average,
 						higherAverageProduction: higherProductionTable3,
 						higherAverageProductionDay: higherProductionTable3Day
 					},
 					table4: {
+                        total: table4Sum,
 						averageProduction: table4Average,
 						higherAverageProduction: higherProductionTable4,
 						higherAverageProductionDay: higherProductionTable4Day
 					},
 					table5: {
+                        total: table5Sum,
 						averageProduction: table5Average,
 						higherAverageProduction: higherProductionTable5,
 						higherAverageProductionDay: higherProductionTable5Day
@@ -732,8 +737,8 @@ const IPTotalResolveMonthData = async (date, tableNumber) => {
 }
 
 let date = {
-    year: '2017',
-    month: '06',
+    year: '2019',
+    month: '05',
     day: '01'
 }
 
