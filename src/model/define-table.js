@@ -126,6 +126,17 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 			}
 		}
 
+		else if (type == 'losses-control') {
+			params = {
+				TableName: "controle_preditivo_ufms_1",
+				ProjectionExpression: "dia_mes_ano, hora_minuto, Perda_J, Perda_p, de, tipo",
+				KeyConditionExpression: "dia_mes_ano = :inicio_data",
+				ExpressionAttributeValues: {
+					":inicio_data": day + month + year,
+				}
+			}
+		}
+
 	}
 
 	return params

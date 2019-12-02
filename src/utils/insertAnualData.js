@@ -309,7 +309,7 @@ const CGPresolveMonth = async (date) => {
                     higherAverageDay,
                     performancesAverage,
                     totalProductionAverage,
-                    productionsSum
+                    productionsSum: averagesSum
                 }
             }
 
@@ -553,7 +553,7 @@ const IPResolveMonthData = async (date, tableNumber) => {
                     higherAverageDay,
                     performancesAverage,
                     totalProductionAverage,
-                    productionsSum
+                    productionsSum: averagesSum
                 }
 			}
 			
@@ -737,24 +737,24 @@ const IPTotalResolveMonthData = async (date, tableNumber) => {
 }
 
 let date = {
-    year: '2019',
-    month: '05',
+    year: '2017',
+    month: '06',
     day: '01'
 }
 
 const interval = setInterval(async () => {
 
     if (date.year + date.month < '201912' && date.month < 12) {
-        // await IPTotalResolveMonthData(date.year + date.month + date.day, 6)
+        // await IPResolveMonthData(date.year + date.month + date.day, 5)
         date.month = parseInt(date.month)
         date.month++
         date.month = (date.month >= 10) ? date.month : ('0' + date.month).slice(-2)
     } else if (date.year + date.month < '201912' && date.month == 12) {
-        // await IPTotalResolveMonthData(date.year + date.month + date.day, 6)
+        // await IPResolveMonthData(date.year + date.month + date.day, 5)
         date.year = parseInt(date.year)
         date.year++
         date.year = JSON.stringify(date.year)
         date.month = "01"
     } else clearInterval(interval)
 
-}, 10000)
+}, 15000)
