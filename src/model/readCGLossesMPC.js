@@ -168,6 +168,7 @@ const readLosses = async (date) => {
                     totalLosses: response[1],
                     lossesAverage,
                     interval: averagesObject.interval,
+                    day: dateToRequest.day,
                     year: dateToRequest.year,
                     month: dateToRequest.month,
                     monthDay: dateToRequest.day + "/" + dateToRequest.month + "/" + dateToRequest.year,
@@ -186,9 +187,10 @@ const readLosses = async (date) => {
                     totalLosses: 0,
                     lossesAverage: 0,
                     interval: [0],
+                    day: dateToRequest.day,
                     year: dateToRequest.year,
                     month: dateToRequest.month,
-                    monthDay: dateToRequest.month + "/" + dateToRequest.year,
+                    monthDay: dateToRequest.day + "/" + dateToRequest.month + "/" + dateToRequest.year,
                 }
 
                 resolve(items)
