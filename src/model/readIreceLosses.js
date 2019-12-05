@@ -232,7 +232,6 @@ IreceLossesServices.readForOneMonth = async (table, date) => {
 							})
 						}
 
-
 						// Aglomera as produções reais de cada mesa
 						allRealProduction[response.table - 1] = response.realProd
 
@@ -240,13 +239,13 @@ IreceLossesServices.readForOneMonth = async (table, date) => {
 						allLossesPercentage[response.table - 1] = response.lossPercentage
 
 						// Calcula a média de producao real por mesa
-						let totalProduction = allRealProduction[response.table - 1].reduce((acc, cur) => {
-							return acc + parseFloat(cur)
-						})
+						let totalProduction = (response.realProd.length != 0) ? allRealProduction[response.table - 1].reduce((acc, cur) => {
+								return acc + parseFloat(cur)
+							}) : 0
 
 						productionAverages[response.table - 1] = parseFloat((totalProduction / allRealProduction[response.table - 1].length).toFixed(3))
 
-						if (tablesRead === tables.length) {
+						if (tablesRead == 5) {
 
 							// Define ranking de mesas que mais tiveram perdas (em %)
 							let sortedLosses = auxiliar
@@ -259,8 +258,8 @@ IreceLossesServices.readForOneMonth = async (table, date) => {
 
 								lossesRanking[descendingRankedPosition] = ({
 									table: originalTableAsPositionToRank + 1,
-									loss,
-									averageProduction: productionAverages[originalTableAsPositionToRank],
+									loss: (!isNaN(loss) ? loss : 0),
+									averageProduction: productionAverages[originalTableAsPositionToRank] || 0,
 									technology: technologies[originalTableAsPositionToRank]
 								})
 
@@ -302,8 +301,7 @@ IreceLossesServices.readForOneMonth = async (table, date) => {
 								year: response.year,
 								month: response.month,
 								yearMonth: `${response.month}/${response.year}`
-							}
-
+							}		
 							resolve(items)
 						}
 
