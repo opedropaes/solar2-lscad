@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-iot-device-sdk": "^2.2.1",
     "aws-sdk": "^2.520.0",
     "bootstrap": "^4.3.1",
     "create-react-app": "^3.0.1",
