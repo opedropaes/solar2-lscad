@@ -344,6 +344,9 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 					
 					averageProduction[day - 1] = (averageProduction[day - 1] > 65) ? parseFloat((totalAverage / 2).toFixed(3)) || 0 : averageProduction[day - 1]
 					
+					// Second verification
+					averageProduction[day - 1] = (averageProduction[day - 1] > 70) ? parseFloat((averageProduction[day - 1] / 2).toFixed(3)) || 0 : averageProduction[day - 1]
+					
 					averageCapacityFactor[day - 1] = parseFloat((totalCapacityFactor / effectiveHours).toFixed(3)) || 0
 					totalProductions[day - 1] = totalProduction
 					performances[day - 1] = performanceRatio
