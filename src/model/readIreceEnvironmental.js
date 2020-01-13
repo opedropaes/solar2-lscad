@@ -273,7 +273,7 @@ IreceEnvironmentalServices.readForOneMonth = async (date) => {
 			date[3]
 	}
 
-	let daysThisMonth = daysInMonthDefiner.howMayDaysThisMonth(dateToRequest.month)
+	let daysThisMonth = daysInMonthDefiner.howManyDaysThisMonth(dateToRequest.month)
 	let days = []
 
 	for (let i = 1; i <= daysThisMonth; i++) {

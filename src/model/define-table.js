@@ -63,7 +63,7 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 
 		else if (type == 'losses') {
 			params = {
-				TableName: "sujidade_"+tablenumber+"_irece",
+				TableName: "sujidade_" + tablenumber + "_irece",
 				ProjectionExpression: "#ts, #dt, perda, tot_prod, tot_ideal, limpeza_viabilidade",
 				FilterExpression: "#dt between :start_ts and :end_ts",
 				ExpressionAttributeNames: {
@@ -89,7 +89,7 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 				}
 			}
 		}
-		
+
 		else if (type == 'production-year') {
 			params = {
 				TableName: "inversor_1_ufms_anual",
@@ -104,10 +104,10 @@ const defineTable = (ufv, type, tablenumber, day, month, year, table) => {
 		else if (type == 'environmental') {
 			params = {
 				TableName: "ambientais_ufms",
-				KeyConditionExpression: "dia_mes_ano = :inicio",
+				KeyConditionExpression: "dia_mes_ano = :inicio_data",
 				ProjectionExpression: "dia_mes_ano, hora_minuto, massaPM1, massaPM10, massaPM2, massaPM4, numPM1, numPM10, numPM2, numPM4, tamanho_medio, #temperature, tipo, vento_dir, vento_vel, hum, irr",
 				ExpressionAttributeValues: {
-					":inicio": parseInt(year + month + day)
+					":inicio_data": parseInt(year + month + day)
 				},
 				ExpressionAttributeNames: {
 					"#temperature": "temp"
