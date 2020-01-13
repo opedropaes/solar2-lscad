@@ -11,6 +11,18 @@ let usedYear = now.getFullYear()
 let usedMonth = now.getMonth() + 1
 let usedDay = now.getDate()
 
+const max = (array) => {
+	let max = 0;
+	
+	if (array) {
+		array.map(item => {
+			if (item > max) 	max = item
+		});
+	}
+
+	return max;
+}
+
 const requireAWSData = async (params, requestedDate) => {
 
 	return new Promise((resolve, reject) => {
@@ -237,6 +249,14 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 			null
 		)
 
+		if(isNaN(params.ExpressionAttributeValues[':inicio_data'])) {
+			let newExpressionAttributeValues = parseInt(date.year + date.month + date.day);
+			params = {
+				...params,
+				ExpressionAttributeValues : newExpressionAttributeValues
+			};
+		}
+
 		let requestedDate = {
 			day: dateToRequest.day,
 			month: dateToRequest.month,
@@ -246,6 +266,7 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 		requireAWSData(params, requestedDate)
 			.then((response) => {
 
+
 				let totalIrradiation = (response[7].length) ? response[7].reduce((acc, cur) => acc + parseFloat(cur)) : 0
 				let totalProduction = (response[8].length) ? response[8].reduce((acc, cur) => acc + parseFloat(cur)) : 0
 
@@ -254,6 +275,7 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 
 				let irradiationAverageIsNumber = (typeof parseFloat((totalIrradiation / response[7].length).toFixed(3)) == "number" && response[7].length > 0)
 				let irradiationAverage = (irradiationAverageIsNumber) ? parseFloat((totalIrradiation / response[7].length).toFixed(3)) : 0
+				let higherIrradiation = max(response[7])
 
 				let painelEfficiencyDegree = 0.175
 
@@ -271,6 +293,7 @@ CampoGrandeProductionServices.readForOneDay = async (date) => {
 					averages: response[0],
 					interval: response[1],
 					irradiation: response[7],
+					higherIrradiation,
 					irradiationQuarters: response[9],
 					irradiationAverages: response[12],
 					capacityFactor: response[2],
@@ -320,7 +343,7 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 			date[3]
 	}
 
-	let daysThisMonth = daysInMonthDefiner.howMayDaysThisMonth(dateToRequest.month)
+	let daysThisMonth = daysInMonthDefiner.howManyDaysThisMonth(dateToRequest.month)
 	let days = []
 
 	for (let i = 1; i <= daysThisMonth; i++) {

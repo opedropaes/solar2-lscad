@@ -1,5 +1,5 @@
 module.exports = {
-	howMayDaysThisMonth (month) {
+	howManyDaysThisMonth (month) {
 
 		if (month == 2)
 			return 28;
