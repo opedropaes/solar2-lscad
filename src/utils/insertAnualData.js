@@ -274,6 +274,8 @@ const CGPresolveMonth = async (date) => {
 
             //higherAverage
             let higherAverage = max(effectiveCapacityFactor)
+            let averagesWithoutHigherAverage = effectiveCapacityFactor.filter(item => item < higherAverage)
+            let higherAverageThatsNot100Percent = max(averagesWithoutHigherAverage)
 
             //higherAverageDay
             let higherAverageDay = capacityFactor.indexOf(higherAverage)
@@ -305,7 +307,7 @@ const CGPresolveMonth = async (date) => {
                     mes,
                     averageProduction,
                     capacityFactorAverage,
-                    higherAverage,
+                    higherAverage: higherAverageThatsNot100Percent,
                     higherAverageDay,
                     performancesAverage,
                     totalProductionAverage,
@@ -317,7 +319,7 @@ const CGPresolveMonth = async (date) => {
                 if (err) {
                     console.log(err)
                 } else {
-                    console.log("put item: ", data)
+                    console.log("put item: ", data, params.Item.ano, params.Item.mes)
                 }
             })
 
@@ -737,20 +739,20 @@ const IPTotalResolveMonthData = async (date, tableNumber) => {
 }
 
 let date = {
-    year: '2017',
-    month: '06',
+    year: '2018',
+    month: '09',
     day: '01'
 }
 
 const interval = setInterval(async () => {
 
-    if (date.year + date.month < '201912' && date.month < 12) {
-        // await IPResolveMonthData(date.year + date.month + date.day, 5)
+    if (date.year + date.month < '202001' && date.month < 12) {
+        // await CGPresolveMonth(date.year + date.month + date.day)
         date.month = parseInt(date.month)
         date.month++
         date.month = (date.month >= 10) ? date.month : ('0' + date.month).slice(-2)
-    } else if (date.year + date.month < '201912' && date.month == 12) {
-        // await IPResolveMonthData(date.year + date.month + date.day, 5)
+    } else if (date.year + date.month < '202001' && date.month == 12) {
+        // await CGPresolveMonth(date.year + date.month + date.day)
         date.year = parseInt(date.year)
         date.year++
         date.year = JSON.stringify(date.year)

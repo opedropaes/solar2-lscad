@@ -23,6 +23,11 @@ const max = (array) => {
 	return max;
 }
 
+const normalize = (normalizer, maxValue, toBeNormalized) => {
+	const normalized = (toBeNormalized * normalizer) / maxValue;
+	return parseFloat((normalized).toFixed(3));
+}
+
 const requireAWSData = async (params, requestedDate) => {
 
 	return new Promise((resolve, reject) => {
@@ -378,7 +383,15 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 					monthInterval.sort()
 
 					if (monthInterval.length == days.length) {
+
+						let maxCapacityFactor = max(averageCapacityFactor);
+						let normalizedCapacityFactor = []
 						
+						averageCapacityFactor.map(item => {
+							let normalized = normalize(1, maxCapacityFactor, item);
+							normalizedCapacityFactor.push(normalized);
+						})
+
 						let totalPerformanceRatio = performances.reduce((acc, cur) => acc + parseFloat(cur)) || 0
 
 						let effectivePerformanceDays = performances.filter((effectiveDay) => { return effectiveDay > 0 })
@@ -390,7 +403,7 @@ CampoGrandeProductionServices.readForOneMonth = async (date) => {
 
 						items = {
 							averages: averageProduction,
-							capacityFactor: averageCapacityFactor,
+							capacityFactor: normalizedCapacityFactor,
 							productions: totalProductions,
 							performances: performances,
 							performanceRatioComparison: totalPerformanceRatioComparison,
