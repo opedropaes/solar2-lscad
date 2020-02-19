@@ -28,7 +28,7 @@ const correctTime = (lateTime, date) => {
 	let hour = lateTime[0] + lateTime[1];
 	let minutes = lateTime[2] + lateTime[3];
 	
-	if (date.year == 2020 && date.month == 2 && date.day > 15) {
+	if (date.year == 2020 && date.month == 2 && date.day > 15 && date.day < 20) {
 		hour++;
 		hour = (hour < 10) ? '0' + hour : hour;
 	}
