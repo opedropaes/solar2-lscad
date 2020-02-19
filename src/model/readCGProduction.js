@@ -23,6 +23,19 @@ const max = (array) => {
 	return max;
 }
 
+const correctTime = (lateTime, date) => {
+
+	let hour = lateTime[0] + lateTime[1];
+	let minutes = lateTime[2] + lateTime[3];
+	
+	if (date.year == 2020 && date.month == 2 && date.day > 15) {
+		hour++;
+		hour = (hour < 10) ? '0' + hour : hour;
+	}
+	
+	return `${hour}:${minutes}`;
+}
+
 const normalize = (normalizer, maxValue, toBeNormalized) => {
 	const normalized = (toBeNormalized * normalizer) / maxValue;
 	return parseFloat((normalized).toFixed(3));
@@ -38,6 +51,7 @@ const requireAWSData = async (params, requestedDate) => {
 		let completeInterval = []
 		let completeIrradiation = []
 		let sortedIrradiation = []
+		let hourMinToPush = ""
 
 		docClient.query(params, (err, data) => {
 			if (err) {
@@ -53,6 +67,9 @@ const requireAWSData = async (params, requestedDate) => {
 							
 							if (item.P_AC >= 20) {
 
+								hourMinToPush = correctTime(item.hora_minuto, 
+									({year: formatedDate.year, month: formatedDate.month, day: formatedDate.day}))
+								
 								items.push({
 									pac: item.P_AC / 1000,
 									iac: item.I_AC,
@@ -60,26 +77,30 @@ const requireAWSData = async (params, requestedDate) => {
 									vac: item.V_AC,
 									vdc: item.V_DC,
 									irr: item.IRR || 0,
-									hour: formatedDate.hour,
+									hour: hourMinToPush[0] + hourMinToPush[1],
 									minutes: formatedDate.min,
-									hourMin: formatedDate.hourMin
+									hourMin: hourMinToPush
 								})
-
-								completeInterval.push(formatedDate.hourMin)
+								
+								completeInterval.push(hourMinToPush)
 								completeIrradiation.push({
 									irr: item.IRR || 0,
-									hourMin: formatedDate.hourMin
+									hourMin: hourMinToPush
 								})
 
-								interval.push(formatedDate.hourMin)
+								interval.push(hourMinToPush)
 							}
 						} else {
 
 							let formatedDate = dateFormater.formatDate(item.dia_mes_ano, item.hora_minuto)
-							completeInterval.push(formatedDate.hourMin)
+							
+							hourMinToPush = correctTime(item.hora_minuto, 
+								({year: formatedDate.year, month: formatedDate.month, day: formatedDate.day}))
+
+							completeInterval.push(hourMinToPush)
 							completeIrradiation.push({
 								irr: item.IRR || 0,
-								hourMin: formatedDate.hourMin
+								hourMin: hourMinToPush
 							})
 
 						}
