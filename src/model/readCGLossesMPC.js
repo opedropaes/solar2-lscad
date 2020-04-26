@@ -52,6 +52,22 @@ const dataAverage = (data, dates) => {
 
 }
 
+const dataQuarters = (data, dates) => {
+    
+    let quartersItems = [];
+    let quartersDates = [];
+    
+    dates.map(date => {
+        if ((date[3] + date[4]) % 15 == 0 || (date[3] + date[4]) == '00') {            
+            let respectiveItem = data[dates.indexOf(date)];
+            quartersItems.push(respectiveItem);
+            quartersDates.push(date);
+        }
+    });
+
+    return { losses: quartersItems, interval: quartersDates };
+}
+
 const requireAWSData = async (params) => {
     return new Promise((resolve, reject) => {
 
@@ -60,14 +76,13 @@ const requireAWSData = async (params) => {
         let interval = []
         let completeDates = []
         let losses = []
-        let totalLosses = 0
 
         docClient.query(params, (err, data) => {
             if (err) {
                 reject(err)
             }
             else {
-                data.Items.forEach((item) => {
+                data.Items.forEach((item) => {                    
                     if (typeof data.Items != "undefined") {
 
                         let dia_mes_ano = item.dia_mes_ano
@@ -106,7 +121,6 @@ const requireAWSData = async (params) => {
                     for (let item of items) {
                         if (day == item.hourMin) {
                             losses.push(parseFloat(item.loss))
-                            totalLosses += parseFloat(item.loss)
                         }
                     }
 
@@ -116,7 +130,6 @@ const requireAWSData = async (params) => {
 
             resolve([
                 losses,
-                totalLosses,
                 interval,
                 completeDates,
             ])
@@ -156,18 +169,15 @@ const readLosses = async (date) => {
         requireAWSData(params)
             .then(async (response) => {
 
-                let averagesObject = await dataAverage(response[0], response[2])
-                let lossesSum = response[0].reduce((acc, cur) => acc + parseFloat(cur))
-                let lossesAverage = parseFloat((lossesSum / response[0].length).toFixed(3))
+                // let averagesObject = await dataAverage(response[0], response[2] /* virou response[1] */) // substituido pela linha abaixo
+                let quartersObject = dataQuarters(response[0], response[1])
 
                 let items = {
                     type: "mpc",
                     from: "ufms",
                     period: "day",
-                    loss: averagesObject.losses,
-                    totalLosses: response[1],
-                    lossesAverage,
-                    interval: averagesObject.interval,
+                    loss: quartersObject.losses,
+                    interval: quartersObject.interval,
                     day: dateToRequest.day,
                     year: dateToRequest.year,
                     month: dateToRequest.month,
@@ -184,8 +194,6 @@ const readLosses = async (date) => {
                     from: "ufms",
                     period: "day",
                     loss: [0],
-                    totalLosses: 0,
-                    lossesAverage: 0,
                     interval: [0],
                     day: dateToRequest.day,
                     year: dateToRequest.year,

@@ -474,6 +474,8 @@ IreceLossesServices.readForOneYear = async (table, date) => {
 
 						mappedYears++
 
+						let anualAverageLossPercentage = totalLossPercentages.reduce((acc, cur) => parseFloat(acc) + parseFloat(cur));
+
 						if (mappedYears === months.length) {
 							items = {
 								table, 
@@ -513,6 +515,10 @@ IreceLossesServices.readForOneYear = async (table, date) => {
 								totalLossPercentages: {
 									type: "%",
 									values: totalLossPercentages
+								},
+								anualAverageLossPercentage: {
+									type: "%",
+									values: (anualAverageLossPercentage / totalLossPercentages.length).toFixed(3)
 								},
 								period: "year"
 							}
